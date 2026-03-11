@@ -1,4 +1,4 @@
-const SARVAM_API_KEY = import.meta.env.VITE_SARVAM_API_KEY || '';
+
 
 export const LANGUAGES = [
     { code: 'en-IN', name: 'English', native: 'English', flag: '🇮🇳' },

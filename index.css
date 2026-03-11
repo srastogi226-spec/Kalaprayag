@@ -243,22 +243,6 @@ textarea {
   animation: chatSlideUp 0.3s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
-@keyframes tooltipBounce {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-5px);
-  }
-}
-
-.animate-tooltip-bounce {
-  animation: tooltipBounce 2s ease-in-out infinite;
-}
-
 @keyframes typingBounce {
 
   0%,
