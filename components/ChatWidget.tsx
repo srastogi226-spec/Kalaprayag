@@ -169,9 +169,15 @@ const ChatWidget: React.FC = () => {
 
             // Extract a readable error message
             let errString = 'Connection issue';
-            if (error.message) {
-                // If the error message is an object (due to our custom Vercel proxy error passthrough), stringify it safely
-                errString = typeof error.message === 'object' ? JSON.stringify(error.message) : error.message;
+
+            if (error instanceof Error) {
+                errString = error.message;
+            } else if (error?.message) {
+                try {
+                    errString = typeof error.message === 'object' ? JSON.stringify(error.message) : error.message;
+                } catch (e) { /* ignore */ }
+            } else if (typeof error === 'string') {
+                errString = error;
             }
 
             // Fallback message if API fails or key is missing
