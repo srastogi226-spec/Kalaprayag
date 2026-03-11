@@ -166,11 +166,19 @@ const ChatWidget: React.FC = () => {
             setMessages(prev => [...prev, assistantMsg]);
         } catch (error: any) {
             console.error('Chat Error:', error);
+
+            // Extract a readable error message
+            let errString = 'Connection issue';
+            if (error.message) {
+                // If the error message is an object (due to our custom Vercel proxy error passthrough), stringify it safely
+                errString = typeof error.message === 'object' ? JSON.stringify(error.message) : error.message;
+            }
+
             // Fallback message if API fails or key is missing
             const errorMsg: Message = {
                 id: 'error',
                 role: 'assistant',
-                content: `I apologize, but I'm having a quiet moment (${error.message || 'Connection issue'}). Please try again or contact our creators directly.`,
+                content: `I apologize, but I'm having a quiet moment (${errString}). Please try again or contact our creators directly.`,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
             setMessages(prev => [...prev, errorMsg]);
