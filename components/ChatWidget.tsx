@@ -19,9 +19,6 @@ const ChatWidget: React.FC = () => {
     const inputRef = useRef<HTMLInputElement>(null);
     const recognitionRef = useRef<any>(null);
 
-    // Replace with actual key or provided via props/env
-    const SARVAM_API_KEY = 'sk_1kg55j8i_XlET8vbS11D3TIP2XvpD2Z0r';
-
     useEffect(() => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (SpeechRecognition) {
@@ -113,11 +110,10 @@ const ChatWidget: React.FC = () => {
             }));
             history.push({ role: 'user', content });
 
-            const response = await fetch('https://api.sarvam.ai/v1/chat/completions', {
+            const response = await fetch('/api/sarvam?endpoint=v1/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'api-subscription-key': SARVAM_API_KEY
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     model: 'sarvam-m',

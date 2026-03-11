@@ -20,18 +20,14 @@ export const translateText = async (
     targetLang: string,
     sourceLang: string = 'en-IN'
 ): Promise<string> => {
-    if (targetLang === 'en-IN' || !text.trim() || !SARVAM_API_KEY) return text;
+    if (targetLang === 'en-IN' || !text.trim()) return text;
 
-    // In dev (localhost), use the Vite proxy to bypass CORS.
-    // In production, call the Sarvam API directly — deployed domains are CORS-allowed.
-    const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const url = isDev ? '/api/sarvam/translate' : 'https://api.sarvam.ai/translate';
+    const url = '/api/sarvam?endpoint=translate';
 
     try {
         const res = await fetch(url, {
             method: 'POST',
             headers: {
-                'api-subscription-key': SARVAM_API_KEY,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
