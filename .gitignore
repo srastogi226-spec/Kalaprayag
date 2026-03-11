@@ -1,4 +1,27 @@
+# existing entries (preserved)
 node_modules/
 .env*
 .DS_Store
 dist/
+
+# Node
+npm-debug.log
+yarn-error.log
+pnpm-store/
+
+# Build output
+build/
+public/build/
+
+# Env files / secrets
+.env.local
+.env.*.local
+
+# Editor / OS files
+.vscode/
+.idea/
+*.log
+
+# Misc
+coverage/
+.cache/
