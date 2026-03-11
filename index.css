@@ -18,6 +18,24 @@
   --ease-base: ease-in-out;
 }
 
+@keyframes css-bounce {
+
+  0%,
+  100% {
+    transform: translateY(-5%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-css-bounce {
+  animation: css-bounce 2s infinite;
+}
+
 body {
   background-color: var(--bg-color);
   color: var(--text-color);

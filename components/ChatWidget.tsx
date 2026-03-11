@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, startTransition } from "react";
 
 interface Message {
     id: string;
@@ -196,8 +196,10 @@ const ChatWidget: React.FC = () => {
     ];
 
     const toggleOpen = () => {
-        setIsOpen(!isOpen);
-        if (!isOpen) setUnreadCount(0);
+        startTransition(() => {
+            setIsOpen(!isOpen);
+            if (!isOpen) setUnreadCount(0);
+        });
     };
 
     return (
@@ -206,7 +208,7 @@ const ChatWidget: React.FC = () => {
             {!isOpen && (
                 <div className="relative flex flex-col items-end">
                     {/* Tooltip */}
-                    <div className="mb-4 bg-white border border-[#E5E5E5] px-4 py-3 shadow-lg relative animate-tooltip-bounce whitespace-nowrap">
+                    <div className="mb-4 bg-white border border-[#E5E5E5] px-4 py-3 shadow-lg relative animate-css-bounce whitespace-nowrap">
                         <p className="text-[#8B735B] font-bold text-xs uppercase tracking-wider leading-tight">Ask us anything</p>
                         <p className="text-[#999] text-[10px] lowercase tracking-wide mt-1">in Hindi or English</p>
                         <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-r border-b border-[#E5E5E5] rotate-45"></div>
@@ -215,7 +217,7 @@ const ChatWidget: React.FC = () => {
                     {/* Button */}
                     <button
                         onClick={toggleOpen}
-                        className="w-14 h-14 bg-[#2C2C2C] flex items-center justify-center relative shadow-xl hover:bg-black transition-all group"
+                        className="w-14 h-14 bg-[#2C2C2C] flex items-center justify-center relative shadow-xl hover:bg-black transition-all group will-change-transform"
                     >
                         <svg className="w-6 h-6 text-white group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -231,7 +233,10 @@ const ChatWidget: React.FC = () => {
 
             {/* Chat Window */}
             {isOpen && (
-                <div className="w-[360px] h-[520px] bg-[#FAF9F6] shadow-2xl flex flex-col relative animate-chat-window overflow-hidden">
+                <div
+                    className="w-[360px] h-[520px] bg-[#FAF9F6] shadow-2xl flex flex-col relative animate-chat-window overflow-hidden"
+                    style={{ contain: 'layout style paint', willChange: 'transform, opacity' }}
+                >
                     {/* Header */}
                     <div className="bg-[#2C2C2C] p-4 flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-3">
