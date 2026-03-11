@@ -205,6 +205,71 @@ const AppContent: React.FC = () => {
 
   useEffect(() => { window.scrollTo(0, 0); }, [currentPage, selectedProductId, selectedWorkshopId, selectedArtisanId]);
 
+  // ── URL path helpers ────────────────────────────────────────────────────
+  const pageToPath = (page: string, entityId?: string | null): string => {
+    const map: Record<string, string> = {
+      home: '/',
+      shop: '/shop',
+      workshops: '/workshops',
+      'group-workshops': '/workshops/group',
+      'artisan-profiles': '/makers',
+      journal: '/journal',
+      studio: '/custom-studio',
+      about: '/about',
+      contact: '/contact',
+      'artisan-join': '/artisan/join',
+      'artisan-login': '/login',
+      'artisan-dashboard': '/dashboard',
+      admin: '/admin',
+      'product-detail': entityId ? `/product/${entityId}` : '/shop',
+      'workshop-detail': entityId ? `/workshop/${entityId}` : '/workshops',
+      'artisan-profile': entityId ? `/maker/${entityId}` : '/makers',
+    };
+    return map[page] || '/';
+  };
+
+  const pathToState = (pathname: string) => {
+    const parts = pathname.split('/').filter(Boolean);
+    if (parts.length === 0) return { page: 'home' };
+    if (parts[0] === 'product' && parts[1]) return { page: 'product-detail', productId: parts[1] };
+    if (parts[0] === 'workshop' && parts[1]) return { page: 'workshop-detail', workshopId: parts[1] };
+    if (parts[0] === 'maker' && parts[1]) return { page: 'artisan-profile', artisanId: parts[1] };
+    const reverseMap: Record<string, string> = {
+      shop: 'shop',
+      workshops: 'workshops',
+      makers: 'artisan-profiles',
+      journal: 'journal',
+      'custom-studio': 'studio',
+      about: 'about',
+      contact: 'contact',
+      login: 'artisan-login',
+      dashboard: 'artisan-dashboard',
+      admin: 'admin',
+    };
+    if (parts[0] === 'artisan' && parts[1] === 'join') return { page: 'artisan-join' };
+    if (parts[0] === 'workshops' && parts[1] === 'group') return { page: 'group-workshops' };
+    return { page: reverseMap[parts[0]] || 'home' };
+  };
+
+  // Parse initial URL on mount
+  useEffect(() => {
+    const state = pathToState(window.location.pathname);
+    setCurrentPage(state.page);
+    if ('productId' in state) setSelectedProductId(state.productId as string);
+    if ('workshopId' in state) setSelectedWorkshopId(state.workshopId as string);
+    if ('artisanId' in state) setSelectedArtisanId(state.artisanId as string);
+
+    const handlePopState = () => {
+      const s = pathToState(window.location.pathname);
+      setCurrentPage(s.page);
+      setSelectedProductId('productId' in s ? (s.productId as string) : null);
+      setSelectedWorkshopId('workshopId' in s ? (s.workshopId as string) : null);
+      setSelectedArtisanId('artisanId' in s ? (s.artisanId as string) : null);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const navigateTo = (page: string) => {
     setCurrentPage(page);
     setSelectedProductId(null);
@@ -213,6 +278,7 @@ const AppContent: React.FC = () => {
     if (page !== 'custom-studio') {
       setPreSelectedStudioArtisanId(null);
     }
+    window.history.pushState(null, '', pageToPath(page));
   };
 
   const navigateToCustomStudioForArtisan = (artisanId: string) => {
@@ -221,6 +287,7 @@ const AppContent: React.FC = () => {
     setSelectedProductId(null);
     setSelectedWorkshopId(null);
     setCurrentPage('studio');
+    window.history.pushState(null, '', '/custom-studio');
     window.scrollTo(0, 0);
   };
 
@@ -465,9 +532,9 @@ const AppContent: React.FC = () => {
     setDoc(doc(db, 'reviews', review.id!), review).catch(err => alert("Error submitting review: " + err.message));
   };
 
-  const viewProduct = (id: string) => { setSelectedWorkshopId(null); setSelectedArtisanId(null); setSelectedProductId(id); setCurrentPage('product-detail'); };
-  const viewWorkshop = (id: string) => { setSelectedProductId(null); setSelectedArtisanId(null); setSelectedWorkshopId(id); setCurrentPage('workshop-detail'); };
-  const viewArtisan = (id: string) => { setSelectedProductId(null); setSelectedWorkshopId(null); setSelectedArtisanId(id); setCurrentPage('artisan-profile'); };
+  const viewProduct = (id: string) => { setSelectedWorkshopId(null); setSelectedArtisanId(null); setSelectedProductId(id); setCurrentPage('product-detail'); window.history.pushState(null, '', `/product/${id}`); };
+  const viewWorkshop = (id: string) => { setSelectedProductId(null); setSelectedArtisanId(null); setSelectedWorkshopId(id); setCurrentPage('workshop-detail'); window.history.pushState(null, '', `/workshop/${id}`); };
+  const viewArtisan = (id: string) => { setSelectedProductId(null); setSelectedWorkshopId(null); setSelectedArtisanId(id); setCurrentPage('artisan-profile'); window.history.pushState(null, '', `/maker/${id}`); };
 
   const handleLogout = () => {
     logout().then(() => {
