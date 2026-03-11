@@ -1,0 +1,276 @@
+:root {
+  --primary-color: #1A1A1A;
+  --secondary-color: #8B735B;
+  --bg-color: #FAF9F6;
+  --text-color: #2C2C2C;
+  --accent-color: #D1D1D1;
+
+  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Inter', sans-serif;
+
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0.02em;
+  --tracking-wide: 0.1em;
+  --tracking-wider: 0.2em;
+  --tracking-widest: 0.3em;
+
+  --duration-base: 300ms;
+  --ease-base: ease-in-out;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+.serif {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+
+/* Base Transition for all interactive elements */
+a,
+button,
+input,
+select,
+textarea {
+  transition: all var(--duration-base) var(--ease-base);
+}
+
+.interactive {
+  transition: all var(--duration-base) var(--ease-base);
+}
+
+/* Tailwind-style Utility Extensions */
+.tracking-premium {
+  letter-spacing: var(--tracking-wide);
+}
+
+.tracking-editorial {
+  letter-spacing: var(--tracking-wider);
+}
+
+.tracking-signature {
+  letter-spacing: var(--tracking-widest);
+}
+
+.serif-italic {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Motion logic - animate-in overrides */
+.animate-in {
+  animation-duration: var(--duration-base) !important;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation-name: fadeIn;
+}
+
+.slide-up {
+  animation-name: slideUp;
+}
+
+/* Scroll Reveal */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Journal Grid Utilities */
+.editorial-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 2rem;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+/* Glassmorphism Refined */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes statusFlash {
+
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+
+  50% {
+    opacity: 0.3;
+    filter: brightness(1.8);
+  }
+}
+
+@keyframes bgStatusFlash {
+
+  0%,
+  100% {
+    background-color: white;
+  }
+
+  50% {
+    background-color: rgba(251, 191, 36, 0.15);
+  }
+}
+
+.animate-status-flash {
+  animation: statusFlash 0.8s ease-in-out infinite;
+}
+
+.animate-bg-flash {
+  animation: bgStatusFlash 1.5s ease-in-out infinite;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-500 {
+  animation-delay: 500ms;
+}
+
+.delay-1000 {
+  animation-delay: 1000ms;
+}
+
+/* Price to Add to Cart Slide */
+.price-container {
+  height: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+.price-stack {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.group:hover .price-stack {
+  transform: translateY(-20px);
+}
+
+.price-item {
+  height: 20px;
+  display: flex;
+  align-items: center;
+}
+
+/* Chat Widget Animations */
+@keyframes chatSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-chat-window {
+  animation: chatSlideUp 0.3s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+@keyframes tooltipBounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-tooltip-bounce {
+  animation: tooltipBounce 2s ease-in-out infinite;
+}
+
+@keyframes typingBounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-typing-dot {
+  animation: typingBounce 0.6s ease-in-out infinite;
+}
+
+@keyframes soundwave {
+
+  0%,
+  100% {
+    transform: scaleY(0.5);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scaleY(1.2);
+    opacity: 1;
+  }
+}
+
+.animate-soundwave {
+  animation: soundwave 1.2s ease-in-out infinite;
+}

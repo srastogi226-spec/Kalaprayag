@@ -1,0 +1,7 @@
+{
+  "name": "Kala Prayag - Premium Handcrafted Decor",
+  "description": "An exquisite e-commerce platform for handcrafted artisanal decor, featuring a custom studio for bespoke orders and a sophisticated admin dashboard.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
