@@ -77,6 +77,7 @@ const AppContent: React.FC = () => {
   const [checkoutPaymentId, setCheckoutPaymentId] = useState('');
   const [checkoutError, setCheckoutError] = useState('');
   const [checkoutProcessing, setCheckoutProcessing] = useState(false);
+  const [justPlacedOrderId, setJustPlacedOrderId] = useState('');
 
   const handleAddToCart = (item: CartItem) => {
     setCart(prev => {
@@ -743,7 +744,7 @@ const AppContent: React.FC = () => {
           onViewInvoice={() => setIsInvoiceModalOpen(true)}
         />;
       case 'track-order':
-        return <OrderTracking productOrders={productOrders} customOrders={customOrders} onNavigate={navigateTo} />;
+        return <OrderTracking productOrders={productOrders} customOrders={customOrders} onNavigate={navigateTo} justPlacedOrderId={justPlacedOrderId} />;
       case 'about': return <About />;
       case 'contact': return <Contact />;
       case 'artisan-join': return <ArtisanJoin onApply={handleArtisanApplication} />;
@@ -1035,6 +1036,7 @@ const AppContent: React.FC = () => {
                         await handlePlaceProductOrder(order);
                         setCheckoutPaymentId(response.razorpay_payment_id);
                         setCheckoutProcessing(false);
+                        setJustPlacedOrderId(order.id);
                         setOrderPlaced(true);
                       },
                       onFailure: (error) => {
