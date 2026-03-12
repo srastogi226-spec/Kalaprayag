@@ -19,6 +19,12 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => path.replace(/^\/api\/sarvam/, ''),
           secure: true,
         },
+        '/api/delhivery-local': {
+          target: 'https://track.delhivery.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/delhivery-local\//, ''),
+          secure: true,
+        },
       },
     },
     plugins: [react()],

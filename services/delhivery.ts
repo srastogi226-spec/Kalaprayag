@@ -1,12 +1,11 @@
 const DELHIVERY_TOKEN = import.meta.env.VITE_DELHIVERY_TOKEN || '';
 const PICKUP_PINCODE = import.meta.env.VITE_PICKUP_PINCODE || '282001';
 
-// Use Vercel proxy in production to avoid CORS
 const getBaseUrl = () => {
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-        return '/api/delhivery?path=';
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        return '/api/delhivery-local/';
     }
-    return 'https://track.delhivery.com/';
+    return '/api/delhivery?path=';
 };
 
 const headers = () => ({
@@ -44,10 +43,11 @@ export interface ServiceabilityResult {
 
 export const checkServiceability = async (pincode: string): Promise<ServiceabilityResult> => {
     try {
+        const targetPath = `c/api/pin-codes/json/?filter_codes=${pincode}`;
         const base = getBaseUrl();
         const url = base.includes('?path=')
-            ? `${base}c/api/pin-codes/json/?filter_codes=${pincode}`
-            : `${base}c/api/pin-codes/json/?filter_codes=${pincode}`;
+            ? `${base}${encodeURIComponent(targetPath)}`
+            : `${base}${targetPath}`;
 
         const res = await fetch(url, { headers: headers() });
         const data = await res.json();
@@ -139,10 +139,11 @@ export const createShipment = async (order: ShipmentRequest): Promise<ShipmentRe
             }),
         };
 
+        const targetPath = `api/cmu/create.json`;
         const base = getBaseUrl();
         const url = base.includes('?path=')
-            ? `${base}api/cmu/create.json`
-            : `${base}api/cmu/create.json`;
+            ? `${base}${encodeURIComponent(targetPath)}`
+            : `${base}${targetPath}`;
 
         const res = await fetch(url, {
             method: 'POST',
@@ -183,10 +184,11 @@ export interface TrackingResult {
 
 export const trackShipment = async (awb: string): Promise<TrackingResult> => {
     try {
+        const targetPath = `api/v1/packages/json/?waybill=${awb}`;
         const base = getBaseUrl();
         const url = base.includes('?path=')
-            ? `${base}api/v1/packages/json/?waybill=${awb}`
-            : `${base}api/v1/packages/json/?waybill=${awb}`;
+            ? `${base}${encodeURIComponent(targetPath)}`
+            : `${base}${targetPath}`;
 
         const res = await fetch(url, { headers: headers() });
         const data = await res.json();
