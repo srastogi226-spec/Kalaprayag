@@ -195,11 +195,18 @@ export interface ProductOrder {
   customerPhone: string;
   shippingAddress: string;
   city: string;
+  state?: string;
   pincode: string;
   paymentMethod: string;
   totalAmount: number;
   status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
   paymentId?: string;
+  awb?: string;
+  trackingUrl?: string;
+  shippingStatus?: string;
+  shippingMethod?: string;
+  shippingCost?: number;
+  estimatedDelivery?: string;
   artisanId?: string;
   artisanName?: string;
   createdAt: string;

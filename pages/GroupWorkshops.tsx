@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Workshop, InstitutionRequest, Artisan } from '../types';
+import { useTranslate } from '../hooks/useTranslate';
 
 interface GroupWorkshopsProps {
     workshops: Workshop[];
@@ -9,6 +10,7 @@ interface GroupWorkshopsProps {
 }
 
 const GroupWorkshops: React.FC<GroupWorkshopsProps> = ({ workshops, artisans, onSubmitInstitutionRequest, onBack }) => {
+    const { t } = useTranslate();
     const [institutionSubmitted, setInstitutionSubmitted] = useState(false);
     const [instForm, setInstForm] = useState({
         institutionName: '',
@@ -61,7 +63,7 @@ const GroupWorkshops: React.FC<GroupWorkshopsProps> = ({ workshops, artisans, on
                     <svg className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
                     </svg>
-                    Back to Workshops
+                    {t('Back to Workshops')}
                 </button>
             </div>
 
@@ -77,18 +79,18 @@ const GroupWorkshops: React.FC<GroupWorkshopsProps> = ({ workshops, artisans, on
                             <svg className="w-4 h-4 text-[#8B735B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                             </svg>
-                            <span className="text-[11px] uppercase tracking-[0.2em] text-[#8B735B] font-bold">For Institutions & Groups</span>
+                            <span className="text-[11px] uppercase tracking-[0.2em] text-[#8B735B] font-bold">{t('For Institutions & Groups')}</span>
                         </div>
-                        <h1 className="text-4xl md:text-5xl serif mb-5 text-[#2C2C2C]">Group & Institutional Workshops</h1>
+                        <h1 className="text-4xl md:text-5xl serif mb-5 text-[#2C2C2C]">{t('Group & Institutional Workshops')}</h1>
                         <p className="text-[#666] font-light max-w-xl mx-auto text-base mb-8">
-                            Bring heritage craft experiences to your school, college, corporate team, or community group. We customise workshops for groups of any size.
+                            {t('Bring heritage craft experiences to your school, college, corporate team, or community group. We customise workshops for groups of any size.')}
                         </p>
 
                         {/* Benefit pills */}
                         <div className="flex flex-wrap justify-center gap-3">
                             {['Schools & Colleges', 'Corporate Teams', 'NGOs & Communities', 'Custom Curricula', 'Any Group Size'].map(benefit => (
                                 <span key={benefit} className="bg-white/80 border border-[#D4C5B0] text-[#5A4A38] px-4 py-2 rounded-full text-[11px] font-medium tracking-wide shadow-sm">
-                                    {benefit}
+                                    {t(benefit)}
                                 </span>
                             ))}
                         </div>
@@ -103,8 +105,8 @@ const GroupWorkshops: React.FC<GroupWorkshopsProps> = ({ workshops, artisans, on
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                 </div>
-                                <h3 className="text-2xl serif mb-3">Request Submitted!</h3>
-                                <p className="text-sm text-[#666] mb-6">Our team will reach out within 2 business days to discuss your group workshop.</p>
+                                <h3 className="text-2xl serif mb-3">{t('Request Submitted!')}</h3>
+                                <p className="text-sm text-[#666] mb-6">{t('Our team will reach out within 2 business days to discuss your group workshop.')}</p>
                                 <div className="flex justify-center gap-6">
                                     <button
                                         onClick={resetForm}
@@ -123,8 +125,8 @@ const GroupWorkshops: React.FC<GroupWorkshopsProps> = ({ workshops, artisans, on
                         ) : (
                             <form onSubmit={handleInstitutionSubmit} className="space-y-6">
                                 <div className="mb-4">
-                                    <h3 className="text-xl serif">Group Workshop Inquiry</h3>
-                                    <p className="text-[#999] text-sm mt-1">Fill in the details and our team will get back to you</p>
+                                    <h3 className="text-xl serif">{t('Group Workshop Inquiry')}</h3>
+                                    <p className="text-[#999] text-sm mt-1">{t('Fill in the details and our team will get back to you')}</p>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

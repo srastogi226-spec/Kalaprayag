@@ -47,7 +47,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [message, setMessage] = useState('');
 
   // Dashboard states
-  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'product-orders' | 'artisans' | 'manage-artisans' | 'pending-products' | 'pending-workshops' | 'active-workshops' | 'moderation' | 'marketplace-requests' | 'institution-requests' | 'journal' | 'invoices'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'product-orders' | 'artisans' | 'manage-artisans' | 'pending-products' | 'pending-workshops' | 'active-workshops' | 'moderation' | 'marketplace-requests' | 'institution-requests' | 'journal' | 'invoices' | 'shipping'>('inventory');
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null);
   const [invoiceTypeFilter, setInvoiceTypeFilter] = useState('All');
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState('All');
@@ -282,6 +282,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     { id: 'pending-workshops', label: 'Academy', count: pendingWorkshops.length },
     { id: 'journal', label: 'Journal', count: 0 },
     { id: 'moderation', label: 'Reviews', count: pendingReviews.length },
+    { id: 'shipping', label: 'Shipping', count: productOrders.filter(o => o.awb && o.shippingStatus !== 'Delivered').length },
   ];
 
   return (
@@ -1470,6 +1471,82 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* SHIPPING TAB */}
+      {activeTab === 'shipping' && (() => {
+        const shippedOrders = productOrders.filter(o => o.awb);
+        const booked = shippedOrders.filter(o => o.shippingStatus === 'Manifested' || o.shippingStatus === 'Pending' || o.shippingStatus === 'In Transit').length;
+        const delivered = shippedOrders.filter(o => o.shippingStatus === 'Delivered').length;
+
+        return (
+          <div className="animate-in fade-in duration-500">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white border border-[#E5E5E5] p-6 shadow-sm">
+                <span className="text-[10px] uppercase tracking-widest text-[#999] font-bold block mb-2">Total Shipments</span>
+                <span className="text-3xl serif">{shippedOrders.length}</span>
+              </div>
+              <div className="bg-[#FAF9F6] border border-[#E5E5E5] p-6 shadow-sm">
+                <span className="text-[10px] uppercase tracking-widest text-[#8B735B] font-bold block mb-2">In Transit</span>
+                <span className="text-3xl serif">{booked}</span>
+              </div>
+              <div className="bg-green-50 border border-green-100 p-6 shadow-sm">
+                <span className="text-[10px] uppercase tracking-widest text-green-700 font-bold block mb-2">Delivered</span>
+                <span className="text-3xl serif">{delivered}</span>
+              </div>
+            </div>
+
+            <div className="bg-white border border-[#E5E5E5] shadow-sm overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#FAF9F6] border-b border-[#E5E5E5] text-[10px] uppercase tracking-widest text-[#999]">
+                    <th className="p-4 font-semibold">Order / Date</th>
+                    <th className="p-4 font-semibold">Customer / Addr</th>
+                    <th className="p-4 font-semibold">Delhivery AWB</th>
+                    <th className="p-4 font-semibold">Status</th>
+                    <th className="p-4 font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F0F0F0]">
+                  {shippedOrders.map(order => (
+                    <tr key={order.id} className="hover:bg-[#FAF9F6] transition-colors">
+                      <td className="p-4">
+                        <div className="text-sm font-medium mb-1">{order.id.slice(-6).toUpperCase()}</div>
+                        <div className="text-[10px] text-[#999]">{new Date(order.date).toLocaleDateString()}</div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm mb-1">{order.customerName}</div>
+                        <div className="text-[10px] text-[#666]">{order.city}, {order.state || ''} - {order.pincode}</div>
+                      </td>
+                      <td className="p-4">
+                        <div className="font-mono text-xs font-bold text-[#8B735B] mb-1">{order.awb}</div>
+                        <div className="text-[10px] text-[#999]">{order.shippingMethod || 'Standard'} • ₹{order.shippingCost || 0}</div>
+                      </td>
+                      <td className="p-4">
+                        <span className={`px-3 py-1 text-[10px] uppercase tracking-widest rounded-full font-bold ${order.shippingStatus === 'Delivered' ? 'bg-green-100 text-green-700' :
+                            'bg-amber-100 text-amber-700'
+                          }`}>
+                          {order.shippingStatus || 'Manifested'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <a href={order.trackingUrl || `https://www.delhivery.com/track/package/${order.awb}`} target="_blank" rel="noreferrer" className="text-[10px] uppercase tracking-widest border border-[#2C2C2C] px-4 py-2 hover:bg-[#2C2C2C] hover:text-white transition-all">
+                          Track
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                  {shippedOrders.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-12 text-center text-[#999] text-sm">No shipments yet.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
+
     </div>
   );
 };

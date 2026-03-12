@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { CustomOrder, Artisan } from '../types';
 import { CATEGORIES } from '../constants.tsx';
 import { openRazorpay } from '../services/razorpay';
+import { useTranslate } from '../hooks/useTranslate';
 
 interface CustomStudioProps {
   onSubmitOrder: (order: CustomOrder) => Promise<void> | void;
@@ -62,6 +63,7 @@ function getDeliveryEstimate(size: string): string {
 }
 
 const CustomStudio: React.FC<CustomStudioProps> = ({ onSubmitOrder, artisans, onViewInvoice }) => {
+  const { t } = useTranslate();
   const [step, setStep] = useState(1);
   const [savedDraft, setSavedDraft] = useState(false);
 

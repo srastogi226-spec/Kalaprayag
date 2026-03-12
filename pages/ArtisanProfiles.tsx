@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Artisan } from '../types';
+import { useTranslate } from '../hooks/useTranslate';
 
 interface ArtisanProfilesProps {
   artisans: Artisan[];
@@ -7,6 +8,7 @@ interface ArtisanProfilesProps {
 }
 
 const ArtisanProfiles: React.FC<ArtisanProfilesProps> = ({ artisans, onViewArtisan }) => {
+  const { t } = useTranslate();
   const [filter, setFilter] = useState('All');
   const approved = artisans.filter(a => a.status === 'approved');
   const crafts = ['All', ...Array.from(new Set(approved.map(a => a.craftType)))];
@@ -16,10 +18,10 @@ const ArtisanProfiles: React.FC<ArtisanProfilesProps> = ({ artisans, onViewArtis
     <div className="pt-32 pb-24 min-h-screen animate-in fade-in duration-700">
       {/* Header */}
       <div className="max-w-7xl mx-auto px-6 mb-16 text-center">
-        <span className="text-xs uppercase tracking-[0.4em] text-[#8B735B] mb-4 block">The Collective</span>
-        <h1 className="text-6xl serif mb-4">Meet the Makers</h1>
+        <span className="text-xs uppercase tracking-[0.4em] text-[#8B735B] mb-4 block">{t('The Collective')}</span>
+        <h1 className="text-6xl serif mb-4">{t('Meet the Makers')}</h1>
         <p className="text-[#666] font-light max-w-xl mx-auto">
-          Each artisan in our collective is a master of their craft — curated for excellence, passion and heritage.
+          {t('Each artisan in our collective is a master of their craft — curated for excellence, passion and heritage.')}
         </p>
       </div>
 
@@ -38,8 +40,8 @@ const ArtisanProfiles: React.FC<ArtisanProfilesProps> = ({ artisans, onViewArtis
       {/* Grid */}
       {filtered.length === 0 ? (
         <div className="text-center py-32 text-[#999]">
-          <p className="serif text-3xl italic mb-4">No artisans yet.</p>
-          <p className="text-sm">Our collective is growing — check back soon.</p>
+          <p className="serif text-3xl italic mb-4">{t('No artisans yet.')}</p>
+          <p className="text-sm">{t('Our collective is growing — check back soon.')}</p>
         </div>
       ) : (
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
@@ -73,13 +75,13 @@ const ArtisanProfiles: React.FC<ArtisanProfilesProps> = ({ artisans, onViewArtis
               {/* Info */}
               <div className="p-6">
                 <h3 className="text-2xl serif mb-1 group-hover:text-[#8B735B] transition-colors">
-                  {artisan.brandName || artisan.name}
+                  {t(artisan.brandName || artisan.name)}
                 </h3>
                 {artisan.brandName && artisan.name !== artisan.brandName && (
-                  <p className="text-xs text-[#999] mb-2">by {artisan.name}</p>
+                  <p className="text-xs text-[#999] mb-2">{t('by')} {t(artisan.name)}</p>
                 )}
-                <p className="text-xs text-[#8B735B] uppercase tracking-widest mb-3">{artisan.location}</p>
-                <p className="text-sm text-[#666] font-light line-clamp-2 leading-relaxed mb-4">{artisan.bio}</p>
+                <p className="text-xs text-[#8B735B] uppercase tracking-widest mb-3">{t(artisan.location)}</p>
+                <p className="text-sm text-[#666] font-light line-clamp-2 leading-relaxed mb-4">{t(artisan.bio)}</p>
 
                 <div className="flex items-center justify-between pt-4 border-t border-[#F0F0F0]">
                   <div className="flex items-center gap-1">
@@ -89,7 +91,7 @@ const ArtisanProfiles: React.FC<ArtisanProfilesProps> = ({ artisans, onViewArtis
                     <span className="text-[10px] text-[#999] ml-1">{artisan.rating || '5.0'}</span>
                   </div>
                   <span className="text-[10px] uppercase tracking-widest text-[#999]">
-                    {artisan.experience} yrs experience
+                    {artisan.experience} {t('yrs experience')}
                   </span>
                 </div>
               </div>

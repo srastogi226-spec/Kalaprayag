@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { ProductOrder, CustomOrder } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { trackShipment, TrackingResult } from '../services/delhivery';
 
 interface OrderTrackingProps {
     productOrders: ProductOrder[];
@@ -46,6 +47,29 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ productOrders, customOrde
     const [manualSearchResult, setManualSearchResult] = useState<{ po?: ProductOrder; co?: CustomOrder } | null>(null);
     const [manualError, setManualError] = useState('');
     const [showManualSearch, setShowManualSearch] = useState(false);
+    const [liveTracking, setLiveTracking] = useState<Record<string, TrackingResult>>({});
+    const [trackingLoading, setTrackingLoading] = useState<Record<string, boolean>>({});
+
+    // ── Fetch live tracking for orders with AWB ──────────────────────────
+
+    const fetchTracking = useCallback(async (awb: string) => {
+        if (!awb || liveTracking[awb]) return;
+        setTrackingLoading(p => ({ ...p, [awb]: true }));
+        const result = await trackShipment(awb);
+        setLiveTracking(p => ({ ...p, [awb]: result }));
+        setTrackingLoading(p => ({ ...p, [awb]: false }));
+    }, [liveTracking]);
+
+    // Auto-refresh tracking every 30 minutes
+    useEffect(() => {
+        const awbs = userProductOrders.filter(o => o.awb).map(o => o.awb!);
+        if (awbs.length === 0) return;
+        awbs.forEach(awb => { if (!liveTracking[awb]) fetchTracking(awb); });
+        const interval = setInterval(() => {
+            awbs.forEach(awb => fetchTracking(awb));
+        }, 30 * 60 * 1000);
+        return () => clearInterval(interval);
+    }, [userProductOrders]);
 
     // ── Filter orders for logged-in user ────────────────────────────────────
 
@@ -242,6 +266,48 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ productOrders, customOrde
                                 {order.paymentId && <p className="text-[9px] font-mono text-[#8B735B] mt-0.5">{order.paymentId}</p>}
                             </div>
                         </div>
+                        {/* AWB & Shipping Info */}
+                        {order.awb && (
+                            <div className="border-t border-[#E5E5E5] pt-4 mt-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Shipping Details</p>
+                                    <a href={order.trackingUrl || `https://www.delhivery.com/track/package/${order.awb}`} target="_blank" rel="noopener noreferrer" className="text-[9px] uppercase tracking-widest text-[#8B735B] font-bold hover:underline flex items-center gap-1">
+                                        Track on Delhivery →
+                                    </a>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 text-xs">
+                                    <div><span className="text-[#999] block text-[9px] uppercase font-bold">AWB</span><span className="font-mono font-bold">{order.awb}</span></div>
+                                    {order.shippingMethod && <div><span className="text-[#999] block text-[9px] uppercase font-bold">Method</span>{order.shippingMethod}</div>}
+                                    {order.estimatedDelivery && <div><span className="text-[#999] block text-[9px] uppercase font-bold">Est. Delivery</span>{order.estimatedDelivery}</div>}
+                                    {order.shippingCost && <div><span className="text-[#999] block text-[9px] uppercase font-bold">Shipping Cost</span>₹{order.shippingCost}</div>}
+                                </div>
+                                {/* Live tracking */}
+                                {trackingLoading[order.awb] && <p className="text-[10px] text-[#999] mt-3 uppercase tracking-widest">Loading live tracking...</p>}
+                                {liveTracking[order.awb] && (
+                                    <div className="mt-3 bg-[#FAF9F6] border border-[#E5E5E5] p-3">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-[10px]">📍</span>
+                                            <span className="text-xs font-bold">{liveTracking[order.awb].status}</span>
+                                            {liveTracking[order.awb].location && <span className="text-[10px] text-[#999]">— {liveTracking[order.awb].location}</span>}
+                                        </div>
+                                        {liveTracking[order.awb].timestamp && <p className="text-[10px] text-[#CCC] mb-2">{new Date(liveTracking[order.awb].timestamp).toLocaleString('en-IN')}</p>}
+                                        {liveTracking[order.awb].history.length > 0 && (
+                                            <div className="mt-2 space-y-1.5">
+                                                <p className="text-[8px] uppercase tracking-widest text-[#999] font-bold">Tracking History</p>
+                                                {liveTracking[order.awb].history.slice(0, 5).map((h, i) => (
+                                                    <div key={i} className="flex gap-2 text-[10px]">
+                                                        <span className="text-[#8B735B]">✓</span>
+                                                        <span className="text-[#666]">{h.time ? new Date(h.time).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                                                        <span className="text-[#2C2C2C]">{h.status}</span>
+                                                        {h.location && <span className="text-[#999]">— {h.location}</span>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

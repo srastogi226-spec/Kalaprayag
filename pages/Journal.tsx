@@ -1,12 +1,13 @@
-
 import React, { useState } from 'react';
 import { StudioJournalEntry } from '../types';
+import { useTranslate } from '../hooks/useTranslate';
 
 interface JournalProps {
     entries: StudioJournalEntry[];
 }
 
 const Journal: React.FC<JournalProps> = ({ entries }) => {
+    const { t } = useTranslate();
     const [activeCategory, setActiveCategory] = useState('ALL');
 
     const categories = ['ALL', 'CRAFT STORIES', 'HOME & STYLE', 'GUIDES'];
@@ -31,7 +32,7 @@ const Journal: React.FC<JournalProps> = ({ entries }) => {
                         className="flex items-center text-[10px] uppercase tracking-[0.2em] font-bold text-[#999] hover:text-[#2C2C2C] transition-colors mb-12"
                     >
                         <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                        Back to Journal
+                        {t('Back to Journal')}
                     </button>
 
                     <div className="mb-12 text-center">
@@ -42,7 +43,7 @@ const Journal: React.FC<JournalProps> = ({ entries }) => {
                             {activeArticle.title}
                         </h1>
                         <div className="flex items-center justify-center gap-6 text-[10px] uppercase tracking-widest text-[#999]">
-                            <span className="font-bold border-r border-[#E5E5E5] pr-6">By {activeArticle.author || 'Anonymous'}</span>
+                            <span className="font-bold border-r border-[#E5E5E5] pr-6">{t('By')} {activeArticle.author || t('Anonymous')}</span>
                             <span className="border-r border-[#E5E5E5] pr-6">{new Date(activeArticle.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                             <span>{activeArticle.readTime}</span>
                         </div>
@@ -75,9 +76,9 @@ const Journal: React.FC<JournalProps> = ({ entries }) => {
         <div className="min-h-screen bg-[#FAF9F6] pt-32 pb-24 text-[#2C2C2C] font-sans selection:bg-[#8B735B]/20">
             {/* 1. PAGE HEADER */}
             <header className="max-w-7xl mx-auto px-6 mb-16 text-center animate-in fade-in slide-in-from-top-4 duration-1000">
-                <span className="text-[10px] uppercase tracking-[0.5em] text-[#8B735B] font-bold mb-4 block">Journal</span>
-                <h1 className="text-5xl md:text-7xl serif mb-6 leading-tight">Stories of Craft, <br className="hidden md:block" /> Heritage & Home</h1>
-                <p className="text-sm uppercase tracking-widest text-[#999] font-light">Dispatches from India's artisan communities</p>
+                <span className="text-[10px] uppercase tracking-[0.5em] text-[#8B735B] font-bold mb-4 block">{t('Journal')}</span>
+                <h1 className="text-5xl md:text-7xl serif mb-6 leading-tight" dangerouslySetInnerHTML={{ __html: t('Stories of Craft, <br class="hidden md:block" /> Heritage & Home') }}></h1>
+                <p className="text-sm uppercase tracking-widest text-[#999] font-light">{t("Dispatches from India's artisan communities")}</p>
             </header>
 
             {/* 2. CATEGORY FILTER BAR */}
@@ -116,7 +117,7 @@ const Journal: React.FC<JournalProps> = ({ entries }) => {
                         {/* Right: Content */}
                         <div className="md:w-1/2 p-8 md:p-16 flex flex-col justify-center items-start space-y-8">
                             <div className="flex items-center gap-4">
-                                <span className="text-[10px] uppercase tracking-[0.3em] px-3 py-1 bg-[#8B735B]/10 text-[#8B735B] font-bold">Featured</span>
+                                <span className="text-[10px] uppercase tracking-[0.3em] px-3 py-1 bg-[#8B735B]/10 text-[#8B735B] font-bold">{t('Featured')}</span>
                                 <span className="text-[10px] uppercase tracking-[0.3em] text-[#999]">{featuredEntry.category}</span>
                             </div>
 
@@ -129,7 +130,7 @@ const Journal: React.FC<JournalProps> = ({ entries }) => {
                             </p>
 
                             <span className="text-[10px] uppercase tracking-widest font-bold text-[#8B735B] group-hover:translate-x-2 transition-transform inline-flex items-center">
-                                Read Story <svg className="w-3 h-3 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                {t('Read Story')} <svg className="w-3 h-3 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                             </span>
 
                             <div className="w-full pt-12 border-t border-[#F5F0E8] flex justify-between items-center text-[10px] uppercase tracking-[0.2em] font-bold text-[#999] mt-auto">
@@ -144,7 +145,7 @@ const Journal: React.FC<JournalProps> = ({ entries }) => {
             {/* 4. ARTICLE GRID */}
             <section className="max-w-7xl mx-auto px-6 mb-32">
                 <div className="flex items-center gap-6 mb-16">
-                    <span className="text-[10px] uppercase tracking-[0.5em] font-bold whitespace-nowrap">All Articles</span>
+                    <span className="text-[10px] uppercase tracking-[0.5em] font-bold whitespace-nowrap">{t('All Articles')}</span>
                     <div className="h-px bg-[#E5E5E5] w-full"></div>
                 </div>
 
@@ -196,7 +197,7 @@ const Journal: React.FC<JournalProps> = ({ entries }) => {
 
                 {filteredEntries.length === 0 && (
                     <div className="py-32 text-center">
-                        <p className="serif text-2xl italic text-[#999]">No articles found in this category.</p>
+                        <p className="serif text-2xl italic text-[#999]">{t('No articles found in this category.')}</p>
                     </div>
                 )}
             </section>
@@ -204,9 +205,9 @@ const Journal: React.FC<JournalProps> = ({ entries }) => {
             {/* 5. NEWSLETTER SECTION */}
             <section className="bg-[#2C2C2C] py-32 text-center selection:bg-[#8B735B]/40">
                 <div className="max-w-2xl mx-auto px-6">
-                    <span className="text-[10px] uppercase tracking-[0.5em] text-[#8B735B] font-bold mb-6 block">Newsletter</span>
-                    <h2 className="text-4xl md:text-5xl serif text-white mb-6">Stories Worth Keeping</h2>
-                    <p className="text-[#999] font-light leading-relaxed mb-12">New craft stories, artisan spotlights — once a month.</p>
+                    <span className="text-[10px] uppercase tracking-[0.5em] text-[#8B735B] font-bold mb-6 block">{t('Newsletter')}</span>
+                    <h2 className="text-4xl md:text-5xl serif text-white mb-6">{t('Stories Worth Keeping')}</h2>
+                    <p className="text-[#999] font-light leading-relaxed mb-12">{t('New craft stories, artisan spotlights — once a month.')}</p>
 
                     <form className="max-w-md mx-auto flex flex-col md:flex-row gap-4">
                         <input
@@ -214,11 +215,11 @@ const Journal: React.FC<JournalProps> = ({ entries }) => {
                             placeholder="Your email address"
                             className="flex-1 bg-transparent border-b border-[#E5E5E5]/30 p-4 text-white text-sm focus:outline-none focus:border-[#8B735B] transition-colors placeholder:text-[#999]/30"
                         />
-                        <button className="bg-[#8B735B] text-white px-10 py-4 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-[#A68B6F] transition-all">
-                            Subscribe
+                        <button type="button" className="bg-[#8B735B] text-white px-10 py-4 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-[#A68B6F] transition-all">
+                            {t('Subscribe')}
                         </button>
                     </form>
-                    <p className="mt-6 text-[10px] uppercase tracking-widest text-[#666]">No spam. Unsubscribe anytime.</p>
+                    <p className="mt-6 text-[10px] uppercase tracking-widest text-[#666]">{t('No spam. Unsubscribe anytime.')}</p>
                 </div>
             </section>
 

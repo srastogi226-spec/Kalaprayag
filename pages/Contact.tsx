@@ -1,7 +1,8 @@
-
 import React, { useState } from 'react';
+import { useTranslate } from '../hooks/useTranslate';
 
 const Contact: React.FC = () => {
+  const { t } = useTranslate();
   const [formData, setFormData] = useState({ name: '', email: '', subject: 'General Inquiry', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -20,14 +21,14 @@ const Contact: React.FC = () => {
     <div className="pt-32 pb-24 animate-in fade-in duration-700">
       <div className="max-w-7xl mx-auto px-6">
         <header className="mb-20 text-center">
-          <h1 className="text-6xl serif mb-6">Connect With Us</h1>
-          <p className="text-[#666] max-w-xl mx-auto font-light">Whether you're an interior designer looking for a collaboration or a collector seeking a specific piece, our doors are always open.</p>
+          <h1 className="text-6xl serif mb-6">{t('Connect With Us')}</h1>
+          <p className="text-[#666] max-w-xl mx-auto font-light">{t("Whether you're an interior designer looking for a collaboration or a collector seeking a specific piece, our doors are always open.")}</p>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-24">
           <div className="lg:col-span-2">
             <div className="bg-white p-12 shadow-sm border border-[#F0F0F0]">
-              <h3 className="text-2xl serif mb-10">Inquiry Form</h3>
+              <h3 className="text-2xl serif mb-10">{t('Inquiry Form')}</h3>
 
               {isSuccess ? (
                 <div className="flex flex-col items-center justify-center text-center py-20 animate-in zoom-in duration-500">
@@ -36,8 +37,8 @@ const Contact: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h2 className="text-3xl serif mb-4">Message Sent!</h2>
-                  <p className="text-[#666] mb-8">Thank you for reaching out. We'll get back to you within 24–48 hours.</p>
+                  <h2 className="text-3xl serif mb-4">{t('Message Sent!')}</h2>
+                  <p className="text-[#666] mb-8">{t("Thank you for reaching out. We'll get back to you within 24–48 hours.")}</p>
                   <button
                     onClick={() => setIsSuccess(false)}
                     className="text-xs uppercase tracking-widest text-[#2C2C2C] border-b border-[#2C2C2C] pb-1 hover:text-[#8B735B] hover:border-[#8B735B] transition-all"
@@ -105,8 +106,8 @@ const Contact: React.FC = () => {
             <div>
               <h4 className="text-xs uppercase tracking-widest font-semibold mb-6">Our Flagship Studio</h4>
               <p className="text-[#666] font-light leading-relaxed mb-4">
-                108, Craft District, MG Road<br/>
-                Bangalore, KA 560001<br/>
+                108, Craft District, MG Road<br />
+                Bangalore, KA 560001<br />
                 India
               </p>
               <a
@@ -129,16 +130,16 @@ const Contact: React.FC = () => {
                 rel="noreferrer"
                 className="flex items-center space-x-3 bg-[#25D366]/10 text-[#075E54] px-6 py-4 rounded-full w-fit hover:bg-[#25D366]/20 transition-all font-medium"
               >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.181-2.587-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793 0-.852.449-1.271.608-1.445.159-.175.348-.218.463-.218.116 0 .232.001.334.005.109.004.254-.041.398.305.144.356.492 1.196.535 1.284.043.088.072.19.014.305-.058.115-.087.19-.174.29-.087.1-.183.222-.261.305-.087.088-.178.183-.077.356.101.174.449.741.964 1.201.662.591 1.22.774 1.394.86.174.088.275.073.377-.043.101-.116.435-.506.55-.68.115-.174.232-.145.391-.087.159.058 1.014.478 1.187.565.173.088.29.131.334.203.043.072.043.419-.101.824z"/></svg>
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.181-2.587-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793 0-.852.449-1.271.608-1.445.159-.175.348-.218.463-.218.116 0 .232.001.334.005.109.004.254-.041.398.305.144.356.492 1.196.535 1.284.043.088.072.19.014.305-.058.115-.087.19-.174.29-.087.1-.183.222-.261.305-.087.088-.178.183-.077.356.101.174.449.741.964 1.201.662.591 1.22.774 1.394.86.174.088.275.073.377-.043.101-.116.435-.506.55-.68.115-.174.232-.145.391-.087.159.058 1.014.478 1.187.565.173.088.29.131.334.203.043.072.043.419-.101.824z" /></svg>
                 <span>Chat via WhatsApp</span>
               </a>
             </div>
 
             <div>
-              <h4 className="text-xs uppercase tracking-widest font-semibold mb-6">Gallery Hours</h4>
+              <h4 className="text-xs uppercase tracking-widest font-semibold mb-6">{t('Gallery Hours')}</h4>
               <p className="text-[#666] font-light leading-relaxed">
-                Mon - Sat: 11:00 am – 8:00 pm<br/>
-                Sun: By Appointment Only
+                {t('Mon - Sat: 11:00 am – 8:00 pm')}<br />
+                {t('Sun: By Appointment Only')}
               </p>
             </div>
           </div>

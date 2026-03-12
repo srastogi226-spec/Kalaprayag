@@ -28,6 +28,7 @@ import ReviewModal from './components/ReviewModal';
 import ChatWidget from './components/ChatWidget';
 import InvoiceModal from './components/InvoiceModal';
 import { openRazorpay } from './services/razorpay';
+import { checkServiceability, getShippingRate, calculateWeight, createShipment, getEstimatedDelivery, ServiceabilityResult } from './services/delhivery';
 import { Product, CustomOrder, ArtisanApplication, Artisan, Workshop, CustomRequest, Review, InstitutionRequest, ProductOrder, Message, ClassBooking, AppNotification, FavoriteArtisan, FavoriteProduct, CartItem, StudioJournalEntry, InvoiceData } from './types';
 import { INITIAL_PRODUCTS, INITIAL_CUSTOM_ORDERS, INITIAL_APPLICATIONS, INITIAL_ARTISANS, INITIAL_WORKSHOPS, INITIAL_JOURNAL_ENTRIES } from './constants';
 import { generateInvoiceNumber, calculateInvoiceTotals } from './utils/invoiceUtils';
@@ -73,11 +74,18 @@ const AppContent: React.FC = () => {
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
-  const [checkoutForm, setCheckoutForm] = useState({ name: '', email: '', phone: '', address: '', city: '', pincode: '', payment: 'razorpay' });
+  const [checkoutForm, setCheckoutForm] = useState({ name: '', email: '', phone: '', address: '', city: '', pincode: '', state: '', payment: 'razorpay' });
   const [checkoutPaymentId, setCheckoutPaymentId] = useState('');
   const [checkoutError, setCheckoutError] = useState('');
   const [checkoutProcessing, setCheckoutProcessing] = useState(false);
   const [justPlacedOrderId, setJustPlacedOrderId] = useState('');
+  // Shipping
+  const [shippingCheck, setShippingCheck] = useState<ServiceabilityResult | null>(null);
+  const [shippingChecking, setShippingChecking] = useState(false);
+  const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('standard');
+  const [shippingCost, setShippingCost] = useState(0);
+  const [checkoutAwb, setCheckoutAwb] = useState('');
+  const [checkoutEstDelivery, setCheckoutEstDelivery] = useState('');
 
   const handleAddToCart = (item: CartItem) => {
     setCart(prev => {
@@ -924,10 +932,19 @@ const AppContent: React.FC = () => {
                 <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
                   <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                 </div>
-                <h2 className="text-3xl serif mb-4">Order Placed!</h2>
+                <h2 className="text-3xl serif mb-4">Order Confirmed!</h2>
                 <p className="text-[#666] font-light mb-2">Thank you, {checkoutForm.name}.</p>
-                {checkoutPaymentId && <p className="text-[10px] uppercase tracking-widest text-[#8B735B] mb-2">Payment ID: <span className="font-mono">{checkoutPaymentId}</span></p>}
-                <p className="text-[#999] text-sm mb-8">A confirmation will be sent to {checkoutForm.email}. Your piece will be carefully crafted and dispatched within 7–14 days.</p>
+                {checkoutPaymentId && <p className="text-[10px] uppercase tracking-widest text-[#8B735B] mb-1">Payment ID: <span className="font-mono">{checkoutPaymentId}</span></p>}
+                {checkoutAwb && (
+                  <div className="bg-[#FAF9F6] border border-[#E5E5E5] p-4 mb-4 text-left text-sm space-y-2">
+                    <div className="flex justify-between"><span className="text-[#999]">AWB Number</span><span className="font-mono font-bold text-[#2C2C2C]">{checkoutAwb}</span></div>
+                    {checkoutEstDelivery && <div className="flex justify-between"><span className="text-[#999]">Est. Delivery</span><span className="font-medium">{checkoutEstDelivery}</span></div>}
+                    <div className="flex items-center gap-2 text-[10px] text-emerald-700 uppercase tracking-widest pt-1 border-t border-[#E5E5E5]">
+                      <span>📦</span> Handed to Delhivery for shipping
+                    </div>
+                  </div>
+                )}
+                <p className="text-[#999] text-sm mb-6">A confirmation will be sent to {checkoutForm.email}.</p>
                 <div className="flex flex-col gap-4">
                   <button
                     onClick={() => setIsInvoiceModalOpen(true)}
@@ -975,9 +992,15 @@ const AppContent: React.FC = () => {
                       <span className="font-medium">₹ {(item.price * item.quantity).toLocaleString()}</span>
                     </div>
                   ))}
+                  {shippingCost > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[#4A4A4A]">Shipping ({shippingMethod === 'express' ? 'Express' : 'Standard'})</span>
+                      <span className="font-medium">₹ {shippingCost.toLocaleString()}</span>
+                    </div>
+                  )}
                   <div className="border-t border-[#E5E5E5] pt-2 flex justify-between font-bold">
                     <span className="text-xs uppercase tracking-widest">Total</span>
-                    <span>₹ {cartTotal.toLocaleString()}</span>
+                    <span>₹ {(cartTotal + shippingCost).toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -987,10 +1010,84 @@ const AppContent: React.FC = () => {
                   <input placeholder="Email *" value={checkoutForm.email} onChange={e => setCheckoutForm(p => ({ ...p, email: e.target.value }))} className="w-full border border-[#E5E5E5] p-3 text-sm focus:outline-none focus:border-[#2C2C2C]" />
                   <input placeholder="Phone" value={checkoutForm.phone} onChange={e => setCheckoutForm(p => ({ ...p, phone: e.target.value }))} className="w-full border border-[#E5E5E5] p-3 text-sm focus:outline-none focus:border-[#2C2C2C]" />
                   <textarea placeholder="Delivery Address *" rows={2} value={checkoutForm.address} onChange={e => setCheckoutForm(p => ({ ...p, address: e.target.value }))} className="w-full border border-[#E5E5E5] p-3 text-sm focus:outline-none focus:border-[#2C2C2C] resize-none" />
+                  <input placeholder="State" value={checkoutForm.state} onChange={e => setCheckoutForm(p => ({ ...p, state: e.target.value }))} className="w-full border border-[#E5E5E5] p-3 text-sm focus:outline-none focus:border-[#2C2C2C]" />
                   <div className="grid grid-cols-2 gap-4">
                     <input placeholder="City" value={checkoutForm.city} onChange={e => setCheckoutForm(p => ({ ...p, city: e.target.value }))} className="w-full border border-[#E5E5E5] p-3 text-sm focus:outline-none focus:border-[#2C2C2C]" />
-                    <input placeholder="Pincode" value={checkoutForm.pincode} onChange={e => setCheckoutForm(p => ({ ...p, pincode: e.target.value }))} className="w-full border border-[#E5E5E5] p-3 text-sm focus:outline-none focus:border-[#2C2C2C]" />
+                    <input placeholder="Pincode" value={checkoutForm.pincode} onChange={e => {
+                      setCheckoutForm(p => ({ ...p, pincode: e.target.value }));
+                      setShippingCheck(null);
+                      setShippingCost(0);
+                    }} className="w-full border border-[#E5E5E5] p-3 text-sm focus:outline-none focus:border-[#2C2C2C]" />
                   </div>
+                </div>
+
+                {/* ── Shipping Section ── */}
+                <div className="mb-8">
+                  <p className="text-xs uppercase tracking-widest font-bold text-[#999] mb-3">Shipping</p>
+                  {!shippingCheck ? (
+                    <button
+                      onClick={async () => {
+                        if (checkoutForm.pincode.length < 6) { setCheckoutError('Enter a valid 6-digit pincode'); return; }
+                        setShippingChecking(true); setCheckoutError('');
+                        const result = await checkServiceability(checkoutForm.pincode);
+                        setShippingCheck(result);
+                        setShippingChecking(false);
+                        if (result.serviceable) {
+                          const weight = calculateWeight(cart);
+                          const cost = getShippingRate(weight, false);
+                          setShippingCost(cost);
+                          setShippingMethod('standard');
+                        }
+                      }}
+                      disabled={shippingChecking || checkoutForm.pincode.length < 6}
+                      className="w-full border border-[#E5E5E5] py-3 text-xs uppercase tracking-widest font-bold text-[#2C2C2C] hover:border-[#8B735B] hover:text-[#8B735B] transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                    >
+                      {shippingChecking ? (
+                        <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> Checking...</>
+                      ) : 'Check Delivery Availability'}
+                    </button>
+                  ) : shippingCheck.serviceable ? (
+                    <div className="border border-[#E5E5E5] p-4 space-y-3">
+                      <div className="flex items-center gap-2 text-emerald-700">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        <span className="text-xs uppercase tracking-widest font-bold">Delivery available to {checkoutForm.pincode}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <label className={`flex items-center justify-between p-3 border cursor-pointer transition-all ${shippingMethod === 'standard' ? 'border-[#8B735B] bg-[#FAF9F6]' : 'border-[#E5E5E5] hover:border-[#D1D1D1]'}`}>
+                          <div className="flex items-center gap-3">
+                            <input type="radio" checked={shippingMethod === 'standard'} onChange={() => { setShippingMethod('standard'); setShippingCost(getShippingRate(calculateWeight(cart), false)); }} className="accent-[#8B735B]" />
+                            <div>
+                              <p className="text-sm font-medium">Standard Delivery</p>
+                              <p className="text-[10px] text-[#999]">{getEstimatedDelivery(shippingCheck.deliveryDays, false)}</p>
+                            </div>
+                          </div>
+                          <span className="text-sm font-bold">₹{getShippingRate(calculateWeight(cart), false)}</span>
+                        </label>
+                        {shippingCheck.expressAvailable && (
+                          <label className={`flex items-center justify-between p-3 border cursor-pointer transition-all ${shippingMethod === 'express' ? 'border-[#8B735B] bg-[#FAF9F6]' : 'border-[#E5E5E5] hover:border-[#D1D1D1]'}`}>
+                            <div className="flex items-center gap-3">
+                              <input type="radio" checked={shippingMethod === 'express'} onChange={() => { setShippingMethod('express'); setShippingCost(getShippingRate(calculateWeight(cart), true)); }} className="accent-[#8B735B]" />
+                              <div>
+                                <p className="text-sm font-medium">Express Delivery</p>
+                                <p className="text-[10px] text-[#999]">{getEstimatedDelivery(shippingCheck.deliveryDays, true)}</p>
+                              </div>
+                            </div>
+                            <span className="text-sm font-bold">₹{getShippingRate(calculateWeight(cart), true)}</span>
+                          </label>
+                        )}
+                      </div>
+                      <button onClick={() => { setShippingCheck(null); setShippingCost(0); }} className="text-[10px] text-[#8B735B] uppercase tracking-widest hover:underline">Change Pincode</button>
+                    </div>
+                  ) : (
+                    <div className="border border-red-200 bg-red-50 p-4">
+                      <div className="flex items-center gap-2 text-red-600 mb-2">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        <span className="text-xs uppercase tracking-widest font-bold">Delivery not available to {checkoutForm.pincode}</span>
+                      </div>
+                      <p className="text-xs text-[#666]">Contact us at <strong>8979771816</strong> for alternative arrangements.</p>
+                      <button onClick={() => { setShippingCheck(null); setShippingCost(0); }} className="text-[10px] text-[#8B735B] uppercase tracking-widest hover:underline mt-2">Try Another Pincode</button>
+                    </div>
+                  )}
                 </div>
 
                 {checkoutError && (
@@ -1011,32 +1108,68 @@ const AppContent: React.FC = () => {
                   onClick={() => {
                     setCheckoutError('');
                     setCheckoutProcessing(true);
+                    const totalWithShipping = cartTotal + shippingCost;
                     openRazorpay({
-                      amount: cartTotal,
+                      amount: totalWithShipping,
                       description: `Kala Prayag Order — ${cart.length} item${cart.length > 1 ? 's' : ''}`,
                       customerName: checkoutForm.name,
                       customerEmail: checkoutForm.email,
                       customerPhone: checkoutForm.phone,
                       onSuccess: async (response) => {
+                        const orderId = 'PO-' + Date.now().toString(36).toUpperCase();
                         const order: ProductOrder = {
-                          id: 'PO-' + Date.now().toString(36).toUpperCase(),
+                          id: orderId,
                           items: cart,
                           customerName: checkoutForm.name,
                           customerEmail: checkoutForm.email,
                           customerPhone: checkoutForm.phone,
                           shippingAddress: checkoutForm.address,
                           city: checkoutForm.city,
+                          state: checkoutForm.state,
                           pincode: checkoutForm.pincode,
                           paymentMethod: 'Razorpay',
-                          totalAmount: cartTotal,
+                          totalAmount: totalWithShipping,
                           status: 'confirmed',
                           paymentId: response.razorpay_payment_id,
+                          shippingMethod: shippingMethod === 'express' ? 'Express' : 'Standard',
+                          shippingCost: shippingCost,
+                          estimatedDelivery: shippingCheck ? getEstimatedDelivery(shippingCheck.deliveryDays, shippingMethod === 'express') : '',
                           createdAt: new Date().toISOString(),
                         };
                         await handlePlaceProductOrder(order);
                         setCheckoutPaymentId(response.razorpay_payment_id);
+
+                        // Auto-create Delhivery shipment
+                        try {
+                          const shipment = await createShipment({
+                            orderId,
+                            customerName: checkoutForm.name,
+                            customerPhone: checkoutForm.phone,
+                            customerEmail: checkoutForm.email,
+                            address: checkoutForm.address,
+                            city: checkoutForm.city,
+                            state: checkoutForm.state,
+                            pincode: checkoutForm.pincode,
+                            amount: totalWithShipping,
+                            weight: calculateWeight(cart),
+                            items: cart.map(i => i.name).join(', '),
+                            paymentMode: 'Prepaid',
+                          });
+                          if (shipment.success) {
+                            setCheckoutAwb(shipment.awb);
+                            setCheckoutEstDelivery(order.estimatedDelivery || '');
+                            // Update order in Firebase with AWB
+                            await setDoc(doc(db, 'productOrders', orderId), {
+                              ...order,
+                              awb: shipment.awb,
+                              trackingUrl: shipment.trackingUrl,
+                              shippingStatus: 'booked',
+                            });
+                          }
+                        } catch (e) { console.error('[Delhivery] Shipment creation failed:', e); }
+
                         setCheckoutProcessing(false);
-                        setJustPlacedOrderId(order.id);
+                        setJustPlacedOrderId(orderId);
                         setOrderPlaced(true);
                       },
                       onFailure: (error) => {
@@ -1045,7 +1178,7 @@ const AppContent: React.FC = () => {
                       },
                     });
                   }}
-                  disabled={!checkoutForm.name || !checkoutForm.email || !checkoutForm.address || checkoutProcessing}
+                  disabled={!checkoutForm.name || !checkoutForm.email || !checkoutForm.address || !shippingCheck?.serviceable || checkoutProcessing}
                   className="w-full bg-[#2C2C2C] text-white py-4 text-xs uppercase tracking-[0.3em] font-bold hover:bg-[#8B735B] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {checkoutProcessing ? (
@@ -1054,9 +1187,9 @@ const AppContent: React.FC = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      Opening Payment...
+                      Processing...
                     </>
-                  ) : `Pay Now · ₹ ${cartTotal.toLocaleString()}`}
+                  ) : `Pay Now · ₹ ${(cartTotal + shippingCost).toLocaleString()}`}
                 </button>
               </div>
             )}
