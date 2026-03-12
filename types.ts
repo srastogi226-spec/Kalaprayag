@@ -135,6 +135,7 @@ export interface CustomOrder {
     amount: number;
     method: string;
     paid: boolean;
+    paymentId?: string;
   };
   createdAt: string;
   budget?: number;
@@ -198,6 +199,7 @@ export interface ProductOrder {
   paymentMethod: string;
   totalAmount: number;
   status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  paymentId?: string;
   artisanId?: string;
   artisanName?: string;
   createdAt: string;

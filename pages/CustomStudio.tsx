@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { CustomOrder, Artisan } from '../types';
 import { CATEGORIES } from '../constants.tsx';
+import { openRazorpay } from '../services/razorpay';
 
 interface CustomStudioProps {
   onSubmitOrder: (order: CustomOrder) => Promise<void> | void;
@@ -9,7 +10,7 @@ interface CustomStudioProps {
   onViewInvoice?: () => void;
 }
 
-const PAYMENT_METHODS = ['UPI', 'Bank Transfer', 'Credit / Debit Card', 'Cash on Delivery'];
+
 const TOTAL_STEPS = 6;
 
 const STEPS = [
@@ -86,12 +87,13 @@ const CustomStudio: React.FC<CustomStudioProps> = ({ onSubmitOrder, artisans, on
 
   // Step 6 - Payment
   const [advanceAmount, setAdvanceAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('UPI');
   const [paymentAgreed, setPaymentAgreed] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderId, setOrderId] = useState('');
+  const [orderPaymentId, setOrderPaymentId] = useState('');
 
   // Filtered artisans by category — match on categories array OR craftType string
   const categoryArtisans = artisans.filter(a => {
@@ -140,35 +142,50 @@ const CustomStudio: React.FC<CustomStudioProps> = ({ onSubmitOrder, artisans, on
 
   const handleSubmit = () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      const id = 'ORD-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-      const newOrder: CustomOrder = {
-        id,
-        customerName: contact.name,
-        email: contact.email,
-        phone: contact.phone,
-        concept: design.concept + (design.specialInstructions ? `\n\nSpecial Instructions: ${design.specialInstructions}` : ''),
-        dimensions: finalDimensions,
-        size: finalDimensions,
-        finish: design.finish,
-        category: selectedCategory,
-        assignedArtisanId: selectedArtisan?.id || '',
-        assignedArtisanName: selectedArtisan?.brandName || selectedArtisan?.name || '',
-        adminStatus: 'pending',
-        artisanStatus: 'waiting',
-        status: 'pending',
-        advancePayment: {
-          amount: Number(advanceAmount) || suggestedAdvance,
-          method: paymentMethod,
-          paid: false,
-        },
-        createdAt: new Date().toISOString(),
-      };
-      onSubmitOrder(newOrder);
-      setOrderId(id);
-      setIsSubmitting(false);
-      setIsSuccess(true);
-    }, 1800);
+    setPaymentError('');
+    const advAmt = Number(advanceAmount) || suggestedAdvance;
+    openRazorpay({
+      amount: advAmt,
+      description: `Custom Commission Advance — ${design.concept.slice(0, 50)}`,
+      customerName: contact.name,
+      customerEmail: contact.email,
+      customerPhone: contact.phone,
+      onSuccess: (response) => {
+        const id = 'ORD-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+        const newOrder: CustomOrder = {
+          id,
+          customerName: contact.name,
+          email: contact.email,
+          phone: contact.phone,
+          concept: design.concept + (design.specialInstructions ? `\n\nSpecial Instructions: ${design.specialInstructions}` : ''),
+          dimensions: finalDimensions,
+          size: finalDimensions,
+          finish: design.finish,
+          category: selectedCategory,
+          assignedArtisanId: selectedArtisan?.id || '',
+          assignedArtisanName: selectedArtisan?.brandName || selectedArtisan?.name || '',
+          adminStatus: 'pending',
+          artisanStatus: 'waiting',
+          status: 'pending',
+          advancePayment: {
+            amount: advAmt,
+            method: 'Razorpay',
+            paid: true,
+            paymentId: response.razorpay_payment_id,
+          },
+          createdAt: new Date().toISOString(),
+        };
+        onSubmitOrder(newOrder);
+        setOrderId(id);
+        setOrderPaymentId(response.razorpay_payment_id);
+        setIsSubmitting(false);
+        setIsSuccess(true);
+      },
+      onFailure: (error) => {
+        setIsSubmitting(false);
+        setPaymentError(error.message || 'Payment failed. Please try again.');
+      },
+    });
   };
 
   const resetAll = () => {
@@ -177,7 +194,7 @@ const CustomStudio: React.FC<CustomStudioProps> = ({ onSubmitOrder, artisans, on
     setDimSize(''); setDimCustom(''); setDimDepth('');
     setDesign({ concept: '', finish: 'Natural', specialInstructions: '' });
     setReferenceImages([]);
-    setAdvanceAmount(''); setPaymentAgreed(false); setIsSuccess(false);
+    setAdvanceAmount(''); setPaymentAgreed(false); setIsSuccess(false); setPaymentError('');
   };
 
   // ─── Success Screen ────────────────────────────────────────────────────────
@@ -191,7 +208,8 @@ const CustomStudio: React.FC<CustomStudioProps> = ({ onSubmitOrder, artisans, on
             </svg>
           </div>
           <h1 className="text-4xl serif mb-4">Order Placed!</h1>
-          <p className="text-[10px] uppercase tracking-widest text-[#8B735B] mb-8">Order ID: {orderId}</p>
+          <p className="text-[10px] uppercase tracking-widest text-[#8B735B] mb-2">Order ID: {orderId}</p>
+          {orderPaymentId && <p className="text-[10px] uppercase tracking-widest text-[#8B735B] mb-8">Payment ID: <span className="font-mono">{orderPaymentId}</span></p>}
 
           <div className="bg-white border border-[#E5E5E5] p-8 text-left space-y-4 mb-8">
             <div className="flex justify-between text-sm">
@@ -627,29 +645,19 @@ const CustomStudio: React.FC<CustomStudioProps> = ({ onSubmitOrder, artisans, on
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <label className="text-[10px] uppercase tracking-widest text-[#999] font-semibold block">Payment Method</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {PAYMENT_METHODS.map(m => (
-                        <button
-                          key={m}
-                          type="button"
-                          onClick={() => setPaymentMethod(m)}
-                          className={`py-3 px-4 text-xs font-medium border text-left transition-colors ${paymentMethod === m
-                            ? 'border-[#8B735B] bg-[#FAF9F6] text-[#8B735B]'
-                            : 'border-[#E5E5E5] text-[#666] hover:border-[#D1D1D1] bg-white'
-                            }`}
-                        >
-                          {m}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-3 py-2">
+                    <svg className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span className="text-[10px] text-emerald-700 uppercase tracking-widest">Secure payment via Razorpay · UPI, Cards, Net Banking</span>
                   </div>
 
-                  {paymentMethod === 'UPI' && (<div className="bg-[#FAF9F6] border border-[#E5E5E5] p-5 animate-in fade-in duration-200 mt-6"><p className="text-[10px] uppercase tracking-widest text-[#999] mb-2 font-bold">UPI ID</p><p className="text-lg font-bold text-[#2C2C2C] tracking-wide">kalaprayag@upi</p><p className="text-xs text-[#666] mt-2 leading-relaxed">Send the advance amount and share the screenshot with our team via WhatsApp.</p></div>)}
-                  {paymentMethod === 'Bank Transfer' && (<div className="bg-[#FAF9F6] border border-[#E5E5E5] p-5 animate-in fade-in duration-200 mt-6 space-y-2"><p className="text-[10px] uppercase tracking-widest text-[#999] mb-3 font-bold">Bank Details</p><p className="text-sm"><span className="text-[#999] inline-block w-20">Account:</span> <span className="font-medium text-[#2C2C2C]">Kala Prayag Heritage</span></p><p className="text-sm"><span className="text-[#999] inline-block w-20">A/C No:</span> <span className="font-medium text-[#2C2C2C]">1234 5678 9012</span></p><p className="text-sm"><span className="text-[#999] inline-block w-20">IFSC:</span> <span className="font-medium text-[#2C2C2C]">HDFC0001234</span></p></div>)}
-                  {paymentMethod === 'Credit / Debit Card' && (<div className="bg-[#FAF9F6] border border-[#E5E5E5] p-5 animate-in fade-in duration-200 mt-6"><p className="text-sm text-[#666] leading-relaxed">A secure payment link will be sent to your email after your artisan confirms the final design and deadline.</p></div>)}
-                  {paymentMethod === 'Cash on Delivery' && (<div className="bg-[#FAF9F6] border border-[#E5E5E5] p-5 animate-in fade-in duration-200 mt-6"><p className="text-sm text-[#666] leading-relaxed">Cash collected at delivery. Note: a token advance may still be requested for large custom orders before production begins.</p></div>)}
+                  {paymentError && (
+                    <div className="bg-red-50 border border-red-100 text-red-600 text-xs px-3 py-2">
+                      {paymentError}
+                      <button onClick={() => setPaymentError('')} className="ml-2 underline">Dismiss</button>
+                    </div>
+                  )}
 
                   <div className="flex items-start gap-4 mt-8 pt-6 border-t border-[#F0F0F0]">
                     <input type="checkbox" id="agree" className="w-5 h-5 mt-0.5 accent-[#8B735B] shrink-0" checked={paymentAgreed} onChange={e => setPaymentAgreed(e.target.checked)} />
@@ -693,7 +701,7 @@ const CustomStudio: React.FC<CustomStudioProps> = ({ onSubmitOrder, artisans, on
                 onClick={handleSubmit}
                 className="bg-[#8B735B] text-white px-10 py-4 text-xs uppercase tracking-widest font-bold hover:bg-[#2C2C2C] transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Placing Order...' : 'Place Order →'}
+                {isSubmitting ? 'Processing Payment...' : `Pay Advance · ₹ ${(Number(advanceAmount) || suggestedAdvance).toLocaleString()} →`}
               </button>
             )}
           </div>

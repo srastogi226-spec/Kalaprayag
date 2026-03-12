@@ -27,6 +27,7 @@ import OrderTracking from './pages/OrderTracking';
 import ReviewModal from './components/ReviewModal';
 import ChatWidget from './components/ChatWidget';
 import InvoiceModal from './components/InvoiceModal';
+import { openRazorpay } from './services/razorpay';
 import { Product, CustomOrder, ArtisanApplication, Artisan, Workshop, CustomRequest, Review, InstitutionRequest, ProductOrder, Message, ClassBooking, AppNotification, FavoriteArtisan, FavoriteProduct, CartItem, StudioJournalEntry, InvoiceData } from './types';
 import { INITIAL_PRODUCTS, INITIAL_CUSTOM_ORDERS, INITIAL_APPLICATIONS, INITIAL_ARTISANS, INITIAL_WORKSHOPS, INITIAL_JOURNAL_ENTRIES } from './constants';
 import { generateInvoiceNumber, calculateInvoiceTotals } from './utils/invoiceUtils';
@@ -72,7 +73,10 @@ const AppContent: React.FC = () => {
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
-  const [checkoutForm, setCheckoutForm] = useState({ name: '', email: '', phone: '', address: '', city: '', pincode: '', payment: 'upi' });
+  const [checkoutForm, setCheckoutForm] = useState({ name: '', email: '', phone: '', address: '', city: '', pincode: '', payment: 'razorpay' });
+  const [checkoutPaymentId, setCheckoutPaymentId] = useState('');
+  const [checkoutError, setCheckoutError] = useState('');
+  const [checkoutProcessing, setCheckoutProcessing] = useState(false);
 
   const handleAddToCart = (item: CartItem) => {
     setCart(prev => {
@@ -921,6 +925,7 @@ const AppContent: React.FC = () => {
                 </div>
                 <h2 className="text-3xl serif mb-4">Order Placed!</h2>
                 <p className="text-[#666] font-light mb-2">Thank you, {checkoutForm.name}.</p>
+                {checkoutPaymentId && <p className="text-[10px] uppercase tracking-widest text-[#8B735B] mb-2">Payment ID: <span className="font-mono">{checkoutPaymentId}</span></p>}
                 <p className="text-[#999] text-sm mb-8">A confirmation will be sent to {checkoutForm.email}. Your piece will be carefully crafted and dispatched within 7–14 days.</p>
                 <div className="flex flex-col gap-4">
                   <button
@@ -987,39 +992,69 @@ const AppContent: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-3 mb-8">
-                  <p className="text-xs uppercase tracking-widest font-bold text-[#999]">Payment Method</p>
-                  {['upi', 'card', 'cod'].map(method => (
-                    <label key={method} className="flex items-center gap-3 cursor-pointer p-3 border border-[#E5E5E5] hover:border-[#2C2C2C] transition-all">
-                      <input type="radio" name="payment" value={method} checked={checkoutForm.payment === method} onChange={() => setCheckoutForm(p => ({ ...p, payment: method }))} className="accent-[#2C2C2C]" />
-                      <span className="text-sm capitalize">{method === 'upi' ? 'UPI / Net Banking' : method === 'card' ? 'Credit / Debit Card' : 'Cash on Delivery'}</span>
-                    </label>
-                  ))}
+                {checkoutError && (
+                  <div className="bg-red-50 border border-red-100 text-red-600 text-xs px-3 py-2 mb-4">
+                    {checkoutError}
+                    <button onClick={() => setCheckoutError('')} className="ml-2 underline">Dismiss</button>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-3 py-2 mb-6">
+                  <svg className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span className="text-[10px] text-emerald-700 uppercase tracking-widest">Secure payment via Razorpay · UPI, Cards, Net Banking</span>
                 </div>
 
                 <button
-                  onClick={async () => {
-                    const order: ProductOrder = {
-                      id: 'PO-' + Date.now().toString(36).toUpperCase(),
-                      items: cart,
+                  onClick={() => {
+                    setCheckoutError('');
+                    setCheckoutProcessing(true);
+                    openRazorpay({
+                      amount: cartTotal,
+                      description: `Kala Prayag Order — ${cart.length} item${cart.length > 1 ? 's' : ''}`,
                       customerName: checkoutForm.name,
                       customerEmail: checkoutForm.email,
                       customerPhone: checkoutForm.phone,
-                      shippingAddress: checkoutForm.address,
-                      city: checkoutForm.city,
-                      pincode: checkoutForm.pincode,
-                      paymentMethod: checkoutForm.payment,
-                      totalAmount: cartTotal,
-                      status: 'pending',
-                      createdAt: new Date().toISOString(),
-                    };
-                    await handlePlaceProductOrder(order);
-                    setOrderPlaced(true);
+                      onSuccess: async (response) => {
+                        const order: ProductOrder = {
+                          id: 'PO-' + Date.now().toString(36).toUpperCase(),
+                          items: cart,
+                          customerName: checkoutForm.name,
+                          customerEmail: checkoutForm.email,
+                          customerPhone: checkoutForm.phone,
+                          shippingAddress: checkoutForm.address,
+                          city: checkoutForm.city,
+                          pincode: checkoutForm.pincode,
+                          paymentMethod: 'Razorpay',
+                          totalAmount: cartTotal,
+                          status: 'confirmed',
+                          paymentId: response.razorpay_payment_id,
+                          createdAt: new Date().toISOString(),
+                        };
+                        await handlePlaceProductOrder(order);
+                        setCheckoutPaymentId(response.razorpay_payment_id);
+                        setCheckoutProcessing(false);
+                        setOrderPlaced(true);
+                      },
+                      onFailure: (error) => {
+                        setCheckoutProcessing(false);
+                        setCheckoutError(error.message || 'Payment failed. Please try again.');
+                      },
+                    });
                   }}
-                  disabled={!checkoutForm.name || !checkoutForm.email || !checkoutForm.address}
-                  className="w-full bg-[#2C2C2C] text-white py-4 text-xs uppercase tracking-[0.3em] font-bold hover:bg-[#8B735B] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  disabled={!checkoutForm.name || !checkoutForm.email || !checkoutForm.address || checkoutProcessing}
+                  className="w-full bg-[#2C2C2C] text-white py-4 text-xs uppercase tracking-[0.3em] font-bold hover:bg-[#8B735B] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  Place Order · ₹ {cartTotal.toLocaleString()}
+                  {checkoutProcessing ? (
+                    <>
+                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Opening Payment...
+                    </>
+                  ) : `Pay Now · ₹ ${cartTotal.toLocaleString()}`}
                 </button>
               </div>
             )}

@@ -524,6 +524,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     <div>
                                       <p className="text-[9px] uppercase tracking-widest text-[#999]">Payment</p>
                                       <p className="text-xs font-medium uppercase tracking-widest">{o.paymentMethod}</p>
+                                      {o.paymentId && (
+                                        <div className="flex items-center gap-1 mt-1">
+                                          <span className="text-[9px] font-mono text-[#8B735B]">{o.paymentId}</span>
+                                          <span className="text-[8px] bg-green-100 text-green-700 px-1.5 py-0.5 uppercase tracking-widest font-bold">✓ Verified</span>
+                                        </div>
+                                      )}
                                     </div>
                                     {o.artisanName && (
                                       <div>
