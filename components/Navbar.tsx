@@ -81,6 +81,7 @@ const Navbar: React.FC<NavbarProps> = ({
     { name: 'Makers', id: 'artisan-profiles' },
     { name: 'About', id: 'about' },
     { name: 'Contact', id: 'contact' },
+    { name: 'Track Order', id: 'track-order' },
   ];
 
   const handleMobileNavigate = (id: string) => {

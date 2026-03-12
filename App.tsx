@@ -23,6 +23,7 @@ import WorkshopDetail from './pages/WorkshopDetail';
 import ArtisanProfile from './pages/ArtisanProfile';
 import GroupWorkshops from './pages/GroupWorkshops';
 import CollectorDashboard from './pages/CollectorDashboard';
+import OrderTracking from './pages/OrderTracking';
 import ReviewModal from './components/ReviewModal';
 import ChatWidget from './components/ChatWidget';
 import InvoiceModal from './components/InvoiceModal';
@@ -221,6 +222,7 @@ const AppContent: React.FC = () => {
       'artisan-login': '/login',
       'artisan-dashboard': '/dashboard',
       admin: '/admin',
+      'track-order': '/track',
       'product-detail': entityId ? `/product/${entityId}` : '/shop',
       'workshop-detail': entityId ? `/workshop/${entityId}` : '/workshops',
       'artisan-profile': entityId ? `/maker/${entityId}` : '/makers',
@@ -245,6 +247,7 @@ const AppContent: React.FC = () => {
       login: 'artisan-login',
       dashboard: 'artisan-dashboard',
       admin: 'admin',
+      track: 'track-order',
     };
     if (parts[0] === 'artisan' && parts[1] === 'join') return { page: 'artisan-join' };
     if (parts[0] === 'workshops' && parts[1] === 'group') return { page: 'group-workshops' };
@@ -735,6 +738,8 @@ const AppContent: React.FC = () => {
           preSelectedArtisanId={preSelectedStudioArtisanId}
           onViewInvoice={() => setIsInvoiceModalOpen(true)}
         />;
+      case 'track-order':
+        return <OrderTracking productOrders={productOrders} customOrders={customOrders} onNavigate={navigateTo} />;
       case 'about': return <About />;
       case 'contact': return <Contact />;
       case 'artisan-join': return <ArtisanJoin onApply={handleArtisanApplication} />;
@@ -924,6 +929,17 @@ const AppContent: React.FC = () => {
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     View Invoice
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCheckout(false);
+                      setOrderPlaced(false);
+                      navigateTo('track-order');
+                    }}
+                    className="w-full border border-[#8B735B] text-[#8B735B] py-4 text-xs font-bold uppercase tracking-widest hover:bg-[#8B735B] hover:text-white transition-all flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                    Track My Order
                   </button>
                   <button
                     onClick={() => {
