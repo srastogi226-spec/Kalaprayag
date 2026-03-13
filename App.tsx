@@ -757,51 +757,16 @@ const AppContent: React.FC = () => {
       case 'contact': return <Contact />;
       case 'artisan-join': return <ArtisanJoin onApply={handleArtisanApplication} />;
       case 'artisan-login':
-        if (currentUser) {
-          if (loggedInArtisan) return renderArtisanDashboard();
-          return (
-            <CollectorDashboard
-              userEmail={currentUser.email || ''}
-              userId={currentUser.uid}
-              customOrders={customOrders}
-              productOrders={productOrders}
-              classBookings={classBookings}
-              favoriteArtisans={favoriteArtisans}
-              favoriteProducts={favoriteProducts}
-              artisans={artisans}
-              products={products}
-              notifications={notifications}
-              reviews={reviews}
-              onLeaveReview={handleLeaveReview}
-              onMarkNotificationAsRead={handleMarkNotificationAsRead}
-              onLogout={handleLogout}
-            />
-          );
-        }
+        // ✅ SECURITY FIX: Collectors (non-artisans) are NOT redirected here.
+        // Only approved artisans (loggedInArtisan) may proceed to the dashboard.
+        // All other users — including logged-in collectors — see the login page.
+        if (loggedInArtisan) return renderArtisanDashboard();
         return <ArtisanLogin onSuccess={() => navigateTo('artisan-dashboard')} onJoin={() => navigateTo('artisan-join')} />;
       case 'artisan-dashboard':
+        // ✅ SECURITY FIX: Only approved artisans can access the dashboard.
+        // Collectors who land here (via direct URL or link) see the login page instead.
         if (loggedInArtisan) return renderArtisanDashboard();
-        if (currentUser) {
-          return (
-            <CollectorDashboard
-              userEmail={currentUser.email || ''}
-              userId={currentUser.uid}
-              customOrders={customOrders}
-              productOrders={productOrders}
-              classBookings={classBookings}
-              favoriteArtisans={favoriteArtisans}
-              favoriteProducts={favoriteProducts}
-              artisans={artisans}
-              products={products}
-              notifications={notifications}
-              reviews={reviews}
-              onLeaveReview={handleLeaveReview}
-              onMarkNotificationAsRead={handleMarkNotificationAsRead}
-              onLogout={handleLogout}
-            />
-          );
-        }
-        return renderArtisanDashboard();
+        return <ArtisanLogin onSuccess={() => navigateTo('artisan-dashboard')} onJoin={() => navigateTo('artisan-join')} />;
       case 'admin':
         return (
           <AdminAuthGate>

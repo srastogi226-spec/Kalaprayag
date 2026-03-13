@@ -66,6 +66,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
   const [expandedWorkshops, setExpandedWorkshops] = useState<Record<string, boolean>>({});
   const journalImageInputRef = useRef<HTMLInputElement>(null);
+  // ── Issue 2: AWB input state for shipping ─────────────────────────────
+  const [awbInputs, setAwbInputs] = useState<Record<string, string>>({});
+  const [awbSaving, setAwbSaving] = useState<Record<string, boolean>>({});
 
   const toggleOrderExpansion = (id: string) => {
     setExpandedOrders(prev => ({ ...prev, [id]: !prev[id] }));
@@ -548,10 +551,53 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                       <button onClick={() => setDoc(doc(db, 'productOrders', o.id), { ...o, status: 'confirmed' })} className="text-[9px] uppercase tracking-widest bg-[#2C2C2C] text-white px-4 py-2 hover:bg-black font-bold">Confirm Order</button>
                                     )}
                                     {o.status === 'confirmed' && (
-                                      <button onClick={() => setDoc(doc(db, 'productOrders', o.id), { ...o, status: 'shipped' })} className="text-[9px] uppercase tracking-widest bg-indigo-600 text-white px-4 py-2 hover:bg-indigo-700 font-bold">Mark Shipped</button>
+                                      <div className="flex flex-col gap-2 w-full mt-2">
+                                        <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Enter Delhivery AWB to ship</p>
+                                        <div className="flex gap-2">
+                                          <input
+                                            type="text"
+                                            placeholder="e.g. 1234567890123"
+                                            value={awbInputs[o.id] || ''}
+                                            onChange={e => setAwbInputs(p => ({ ...p, [o.id]: e.target.value }))}
+                                            className="flex-1 border border-[#E5E5E5] px-3 py-2 text-xs focus:outline-none focus:border-indigo-400"
+                                          />
+                                          <button
+                                            disabled={awbSaving[o.id] || !awbInputs[o.id]?.trim()}
+                                            onClick={async () => {
+                                              const awb = awbInputs[o.id]?.trim();
+                                              if (!awb) return;
+                                              setAwbSaving(p => ({ ...p, [o.id]: true }));
+                                              const trackingUrl = `https://www.delhivery.com/track/package/${awb}`;
+                                              await setDoc(doc(db, 'productOrders', o.id), {
+                                                ...o,
+                                                status: 'shipped',
+                                                awb,
+                                                trackingUrl,
+                                                shippingStatus: 'In Transit',
+                                                shippedAt: new Date().toISOString()
+                                              });
+                                              setAwbInputs(p => ({ ...p, [o.id]: '' }));
+                                              setAwbSaving(p => ({ ...p, [o.id]: false }));
+                                            }}
+                                            className="text-[9px] uppercase tracking-widest bg-indigo-600 text-white px-4 py-2 hover:bg-indigo-700 font-bold disabled:opacity-50"
+                                          >
+                                            {awbSaving[o.id] ? 'Saving...' : 'Ship ✓'}
+                                          </button>
+                                        </div>
+                                        {o.awb && <p className="text-[9px] text-[#8B735B] font-mono">Current AWB: {o.awb}</p>}
+                                      </div>
                                     )}
                                     {o.status === 'shipped' && (
-                                      <button onClick={() => setDoc(doc(db, 'productOrders', o.id), { ...o, status: 'delivered' })} className="text-[9px] uppercase tracking-widest bg-green-600 text-white px-4 py-2 hover:bg-green-700 font-bold">Mark Delivered</button>
+                                      <div className="flex flex-col gap-2 w-full mt-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-[9px] uppercase tracking-widest text-indigo-600 font-bold">AWB: {o.awb}</span>
+                                          <a href={o.trackingUrl || `https://www.delhivery.com/track/package/${o.awb}`} target="_blank" rel="noreferrer" className="text-[9px] uppercase tracking-widest text-[#8B735B] hover:underline">Track →</a>
+                                        </div>
+                                        <button
+                                          onClick={() => setDoc(doc(db, 'productOrders', o.id), { ...o, status: 'delivered', shippingStatus: 'Delivered', deliveredAt: new Date().toISOString() })}
+                                          className="text-[9px] uppercase tracking-widest bg-green-600 text-white px-4 py-2 hover:bg-green-700 font-bold"
+                                        >Mark Delivered</button>
+                                      </div>
                                     )}
                                     {(o.status === 'pending' || o.status === 'confirmed') && (
                                       <button onClick={() => setDoc(doc(db, 'productOrders', o.id), { ...o, status: 'cancelled' })} className="text-[9px] uppercase tracking-widest border border-red-200 text-red-500 px-4 py-2 hover:bg-red-50">Cancel Order</button>
@@ -1472,76 +1518,158 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* SHIPPING TAB */}
+      {/* SHIPPING TAB — Issue 2: Full shipping management with AWB + Delhivery tracking */}
       {activeTab === 'shipping' && (() => {
+        const confirmedOrders = productOrders.filter(o => o.status === 'confirmed');
         const shippedOrders = productOrders.filter(o => o.awb);
-        const booked = shippedOrders.filter(o => o.shippingStatus === 'Manifested' || o.shippingStatus === 'Pending' || o.shippingStatus === 'In Transit').length;
-        const delivered = shippedOrders.filter(o => o.shippingStatus === 'Delivered').length;
+        const inTransit = shippedOrders.filter(o => o.shippingStatus !== 'Delivered').length;
+        const delivered = shippedOrders.filter(o => o.shippingStatus === 'Delivered' || o.status === 'delivered').length;
 
         return (
-          <div className="animate-in fade-in duration-500">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white border border-[#E5E5E5] p-6 shadow-sm">
-                <span className="text-[10px] uppercase tracking-widest text-[#999] font-bold block mb-2">Total Shipments</span>
+          <div className="animate-in fade-in duration-500 space-y-8">
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white border border-[#E5E5E5] p-5 shadow-sm">
+                <span className="text-[10px] uppercase tracking-widest text-[#999] font-bold block mb-1">Ready to Ship</span>
+                <span className="text-3xl serif text-amber-600">{confirmedOrders.length}</span>
+              </div>
+              <div className="bg-white border border-[#E5E5E5] p-5 shadow-sm">
+                <span className="text-[10px] uppercase tracking-widest text-[#999] font-bold block mb-1">Total Shipments</span>
                 <span className="text-3xl serif">{shippedOrders.length}</span>
               </div>
-              <div className="bg-[#FAF9F6] border border-[#E5E5E5] p-6 shadow-sm">
-                <span className="text-[10px] uppercase tracking-widest text-[#8B735B] font-bold block mb-2">In Transit</span>
-                <span className="text-3xl serif">{booked}</span>
+              <div className="bg-[#FAF9F6] border border-[#E5E5E5] p-5 shadow-sm">
+                <span className="text-[10px] uppercase tracking-widest text-[#8B735B] font-bold block mb-1">In Transit</span>
+                <span className="text-3xl serif">{inTransit}</span>
               </div>
-              <div className="bg-green-50 border border-green-100 p-6 shadow-sm">
-                <span className="text-[10px] uppercase tracking-widest text-green-700 font-bold block mb-2">Delivered</span>
+              <div className="bg-green-50 border border-green-100 p-5 shadow-sm">
+                <span className="text-[10px] uppercase tracking-widest text-green-700 font-bold block mb-1">Delivered</span>
                 <span className="text-3xl serif">{delivered}</span>
               </div>
             </div>
 
-            <div className="bg-white border border-[#E5E5E5] shadow-sm overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-[#FAF9F6] border-b border-[#E5E5E5] text-[10px] uppercase tracking-widest text-[#999]">
-                    <th className="p-4 font-semibold">Order / Date</th>
-                    <th className="p-4 font-semibold">Customer / Addr</th>
-                    <th className="p-4 font-semibold">Delhivery AWB</th>
-                    <th className="p-4 font-semibold">Status</th>
-                    <th className="p-4 font-semibold text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F0F0F0]">
-                  {shippedOrders.map(order => (
-                    <tr key={order.id} className="hover:bg-[#FAF9F6] transition-colors">
-                      <td className="p-4">
-                        <div className="text-sm font-medium mb-1">{order.id.slice(-6).toUpperCase()}</div>
-                        <div className="text-[10px] text-[#999]">{new Date(order.date).toLocaleDateString()}</div>
-                      </td>
-                      <td className="p-4">
-                        <div className="text-sm mb-1">{order.customerName}</div>
-                        <div className="text-[10px] text-[#666]">{order.city}, {order.state || ''} - {order.pincode}</div>
-                      </td>
-                      <td className="p-4">
-                        <div className="font-mono text-xs font-bold text-[#8B735B] mb-1">{order.awb}</div>
-                        <div className="text-[10px] text-[#999]">{order.shippingMethod || 'Standard'} • ₹{order.shippingCost || 0}</div>
-                      </td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 text-[10px] uppercase tracking-widest rounded-full font-bold ${order.shippingStatus === 'Delivered' ? 'bg-green-100 text-green-700' :
-                            'bg-amber-100 text-amber-700'
-                          }`}>
-                          {order.shippingStatus || 'Manifested'}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <a href={order.trackingUrl || `https://www.delhivery.com/track/package/${order.awb}`} target="_blank" rel="noreferrer" className="text-[10px] uppercase tracking-widest border border-[#2C2C2C] px-4 py-2 hover:bg-[#2C2C2C] hover:text-white transition-all">
-                          Track
-                        </a>
-                      </td>
-                    </tr>
+            {/* Confirmed orders — need AWB */}
+            {confirmedOrders.length > 0 && (
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-amber-600 mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse inline-block"></span>
+                  Ready to Ship — Enter AWB Number
+                </h3>
+                <div className="space-y-3">
+                  {confirmedOrders.map(order => (
+                    <div key={order.id} className="bg-white border border-amber-200 p-4 flex flex-col md:flex-row md:items-center gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold font-mono text-[#2C2C2C]">{order.id}</p>
+                        <p className="text-sm text-[#666]">{order.customerName} — {order.city}, {order.pincode}</p>
+                        <p className="text-[10px] text-[#999]">{order.items.length} item(s) · ₹{order.totalAmount.toLocaleString()}</p>
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <input
+                          type="text"
+                          placeholder="Delhivery AWB number"
+                          value={awbInputs[order.id] || ''}
+                          onChange={e => setAwbInputs(p => ({ ...p, [order.id]: e.target.value }))}
+                          className="border border-[#E5E5E5] px-3 py-2 text-xs w-48 focus:outline-none focus:border-indigo-400"
+                        />
+                        <button
+                          disabled={awbSaving[order.id] || !awbInputs[order.id]?.trim()}
+                          onClick={async () => {
+                            const awb = awbInputs[order.id]?.trim();
+                            if (!awb) return;
+                            setAwbSaving(p => ({ ...p, [order.id]: true }));
+                            await setDoc(doc(db, 'productOrders', order.id), {
+                              ...order,
+                              status: 'shipped',
+                              awb,
+                              trackingUrl: `https://www.delhivery.com/track/package/${awb}`,
+                              shippingStatus: 'In Transit',
+                              shippedAt: new Date().toISOString()
+                            });
+                            setAwbInputs(p => ({ ...p, [order.id]: '' }));
+                            setAwbSaving(p => ({ ...p, [order.id]: false }));
+                          }}
+                          className="text-[9px] uppercase tracking-widest bg-indigo-600 text-white px-5 py-2 hover:bg-indigo-700 font-bold disabled:opacity-40 transition-all"
+                        >
+                          {awbSaving[order.id] ? 'Saving...' : 'Mark Shipped'}
+                        </button>
+                      </div>
+                    </div>
                   ))}
-                  {shippedOrders.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="p-12 text-center text-[#999] text-sm">No shipments yet.</td>
+                </div>
+              </div>
+            )}
+
+            {/* All shipments with AWB */}
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-widest text-[#2C2C2C] mb-3">All Shipments</h3>
+              <div className="bg-white border border-[#E5E5E5] shadow-sm overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#FAF9F6] border-b border-[#E5E5E5] text-[10px] uppercase tracking-widest text-[#999]">
+                      <th className="p-4 font-semibold">Order</th>
+                      <th className="p-4 font-semibold">Customer</th>
+                      <th className="p-4 font-semibold">AWB / Carrier</th>
+                      <th className="p-4 font-semibold">Status</th>
+                      <th className="p-4 font-semibold text-right">Actions</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-[#F0F0F0]">
+                    {shippedOrders.map(order => (
+                      <tr key={order.id} className="hover:bg-[#FAF9F6] transition-colors">
+                        <td className="p-4">
+                          <div className="text-xs font-bold font-mono">{order.id.slice(-8).toUpperCase()}</div>
+                          <div className="text-[10px] text-[#999]">{new Date(order.createdAt).toLocaleDateString('en-IN')}</div>
+                        </td>
+                        <td className="p-4">
+                          <div className="text-sm">{order.customerName}</div>
+                          <div className="text-[10px] text-[#666]">{order.city} — {order.pincode}</div>
+                        </td>
+                        <td className="p-4">
+                          <div className="font-mono text-xs font-bold text-[#8B735B]">{order.awb}</div>
+                          <div className="text-[10px] text-[#999] mt-0.5">{order.shippingMethod || 'Delhivery Standard'}</div>
+                        </td>
+                        <td className="p-4">
+                          <span className={`px-2 py-1 text-[9px] uppercase tracking-widest rounded font-bold ${
+                            order.status === 'delivered' || order.shippingStatus === 'Delivered'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-indigo-50 text-indigo-700'
+                          }`}>
+                            {order.shippingStatus || 'In Transit'}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            <a
+                              href={order.trackingUrl || `https://www.delhivery.com/track/package/${order.awb}`}
+                              target="_blank" rel="noreferrer"
+                              className="text-[9px] uppercase tracking-widest border border-[#2C2C2C] px-3 py-1.5 hover:bg-[#2C2C2C] hover:text-white transition-all"
+                            >
+                              Track
+                            </a>
+                            {order.status !== 'delivered' && (
+                              <button
+                                onClick={() => setDoc(doc(db, 'productOrders', order.id), {
+                                  ...order,
+                                  status: 'delivered',
+                                  shippingStatus: 'Delivered',
+                                  deliveredAt: new Date().toISOString()
+                                })}
+                                className="text-[9px] uppercase tracking-widest bg-green-600 text-white px-3 py-1.5 hover:bg-green-700 transition-all font-bold"
+                              >
+                                Delivered ✓
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {shippedOrders.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="p-12 text-center text-[#999] text-sm">No shipments yet. Confirm orders first.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         );
