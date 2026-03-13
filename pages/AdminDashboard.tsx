@@ -78,7 +78,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setExpandedWorkshops(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const ALLOWED_ADMINS = ['srastogi226@gmail.com', 'srastogi795@gmail.com'];
+  const ALLOWED_ADMINS = ['srastogi226@gmail.com']; // ✅ Only this email has admin access
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -98,18 +98,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pwInput === 'Shiv@1994') {
-      setIsAuthenticated(true);
-      try { sessionStorage.setItem('kp_admin_auth', 'true'); } catch { }
-      return;
-    }
-    try {
-      await signInWithEmailAndPassword(auth, emailInput, pwInput);
-      setIsAuthenticated(true);
-      sessionStorage.setItem('kp_admin_auth', 'true');
-    } catch (error: any) {
-      setPwError('Incorrect credentials. Please try again.');
-    }
+    // ✅ Password login disabled — only Google login allowed for security
+    setPwError('Password login is disabled. Please use Google Sign-In with your authorized account.');
   };
 
   const handleResetPassword = async () => {
@@ -382,7 +372,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <h3 className="text-base font-medium">{p.name}</h3>
                       <p className="text-xs text-[#999] uppercase tracking-widest">{p.artisan} • {p.category} • \u20b9 {p.price.toLocaleString()}</p>
                     </div>
-                    <button onClick={() => deleteDoc(doc(db, 'products', p.id))} className="text-[10px] text-red-400 uppercase tracking-widest">Remove</button>
+                    <button onClick={() => { if (window.confirm(`Remove "${p.name}" permanently?`)) deleteDoc(doc(db, 'products', p.id)); }} className="text-[10px] text-red-400 uppercase tracking-widest hover:text-red-600 transition-all">Remove</button>
                   </div>
                 ))}
               </div>
@@ -1122,10 +1112,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </div>
                     )}
                   </div>
-                  <button
-                    onClick={() => setEditingArtisan({ ...a })}
-                    className="text-[10px] uppercase tracking-widest border border-[#2C2C2C] px-4 py-2 hover:bg-[#2C2C2C] hover:text-white transition-all flex-shrink-0"
-                  >Edit Profile</button>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => setEditingArtisan({ ...a })}
+                      className="text-[10px] uppercase tracking-widest border border-[#2C2C2C] px-4 py-2 hover:bg-[#2C2C2C] hover:text-white transition-all"
+                    >Edit Profile</button>
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Remove ${a.brandName || a.name} from Kala Prayag? This cannot be undone.`)) {
+                          deleteDoc(doc(db, 'artisans', a.id)).catch(e => alert('Error: ' + e.message));
+                        }
+                      }}
+                      className="text-[10px] uppercase tracking-widest border border-red-200 text-red-500 px-4 py-2 hover:bg-red-50 transition-all"
+                    >Remove</button>
+                  </div>
                 </div>
               ))
             )}
