@@ -79,7 +79,7 @@ const ArtisanLogin: React.FC<ArtisanLoginProps> = ({ onSuccess, onJoin }) => {
     try {
       // Step 1: Firebase Google auth
       const result = await loginWithGoogle();
-      const uid = result?.user?.uid;
+      const uid = result?.uid;
 
       if (!uid) throw new Error('NO_ACCOUNT: Could not retrieve user.');
 
@@ -123,7 +123,7 @@ const ArtisanLogin: React.FC<ArtisanLoginProps> = ({ onSuccess, onJoin }) => {
     try {
       // Step 1: Firebase email/password auth
       const result = await login(email, password);
-      const uid = result?.user?.uid;
+      const uid = result?.uid;
 
       if (!uid) throw new Error('NO_ACCOUNT: Could not retrieve user.');
 

@@ -50,6 +50,22 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ productOrders, customOrde
     const [liveTracking, setLiveTracking] = useState<Record<string, TrackingResult>>({});
     const [trackingLoading, setTrackingLoading] = useState<Record<string, boolean>>({});
 
+    // ── Filter orders for logged-in user (MUST be defined before useEffect) ──
+
+    const userProductOrders = useMemo(() => {
+        if (!userEmail) return [];
+        return productOrders
+            .filter(o => o.customerEmail?.toLowerCase() === userEmail)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }, [productOrders, userEmail]);
+
+    const userCustomOrders = useMemo(() => {
+        if (!userEmail) return [];
+        return customOrders
+            .filter(o => o.email?.toLowerCase() === userEmail)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }, [customOrders, userEmail]);
+
     // ── Fetch live tracking for orders with AWB ──────────────────────────
 
     const fetchTracking = useCallback(async (awb: string) => {
@@ -70,22 +86,6 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ productOrders, customOrde
         }, 30 * 60 * 1000);
         return () => clearInterval(interval);
     }, [userProductOrders]);
-
-    // ── Filter orders for logged-in user ────────────────────────────────────
-
-    const userProductOrders = useMemo(() => {
-        if (!userEmail) return [];
-        return productOrders
-            .filter(o => o.customerEmail?.toLowerCase() === userEmail)
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }, [productOrders, userEmail]);
-
-    const userCustomOrders = useMemo(() => {
-        if (!userEmail) return [];
-        return customOrders
-            .filter(o => o.email?.toLowerCase() === userEmail)
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }, [customOrders, userEmail]);
 
     const filteredOrders = useMemo(() => {
         const combined: { type: 'shop' | 'custom'; order: ProductOrder | CustomOrder; date: string }[] = [];
