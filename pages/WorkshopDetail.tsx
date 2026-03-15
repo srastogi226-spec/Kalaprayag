@@ -297,13 +297,18 @@ const WorkshopDetail: React.FC<WorkshopDetailProps> = ({
               workshopId: workshop.id,
               workshopTitle: workshop.title,
               artisanId: workshop.artisanId,
+              artisanName: workshop.artisanName,
               customerName: details.customerName,
               customerEmail: details.customerEmail,
               customerPhone: details.customerPhone,
               paymentStatus: 'completed',
               amount: workshop.price,
               method: details.method,
-              createdAt: new Date().toISOString()
+              createdAt: new Date().toISOString(),
+              status: 'confirmed',
+              reminderSent: false,
+              attendanceMarked: false,
+              reviewRequested: false
             });
           }
         }}

@@ -9,7 +9,7 @@ import {
 } from "firebase/auth";
 import { auth, db } from '../firebase';
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
-import { Product, CustomOrder, ArtisanApplication, Artisan, Workshop, Review, CustomRequest, InstitutionRequest, ProductOrder, StudioJournalEntry, InvoiceData } from '../types';
+import { Product, CustomOrder, ArtisanApplication, Artisan, Workshop, Review, CustomRequest, InstitutionRequest, ProductOrder, StudioJournalEntry, InvoiceData, ClassBooking } from '../types';
 import InvoiceView from '../components/InvoiceView';
 
 interface AdminDashboardProps {
@@ -31,10 +31,11 @@ interface AdminDashboardProps {
   productOrders?: ProductOrder[];
   journalEntries?: StudioJournalEntry[];
   invoices?: InvoiceData[];
+  classBookings?: ClassBooking[];
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({
-  products, setProducts, orders, setOrders, applications, setApplications, artisans, setArtisans, workshops, setWorkshops, reviews, setReviews, customRequests, institutionRequests, setInstitutionRequests, productOrders = [], journalEntries = [], invoices = []
+  products, setProducts, orders, setOrders, applications, setApplications, artisans, setArtisans, workshops, setWorkshops, reviews, setReviews, customRequests, institutionRequests, setInstitutionRequests, productOrders = [], journalEntries = [], invoices = [], classBookings = []
 }) => {
 
   // ── Auth gate ─────────────────────────────────────────────────────────
@@ -47,7 +48,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [message, setMessage] = useState('');
 
   // Dashboard states
-  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'product-orders' | 'artisans' | 'manage-artisans' | 'pending-products' | 'pending-workshops' | 'active-workshops' | 'moderation' | 'marketplace-requests' | 'institution-requests' | 'journal' | 'invoices' | 'shipping'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'product-orders' | 'artisans' | 'manage-artisans' | 'pending-products' | 'pending-workshops' | 'active-workshops' | 'moderation' | 'marketplace-requests' | 'institution-requests' | 'journal' | 'invoices' | 'shipping' | 'bookings'>('inventory');
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null);
   const [invoiceTypeFilter, setInvoiceTypeFilter] = useState('All');
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState('All');
@@ -272,7 +273,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     { id: 'institution-requests', label: 'Group Bookings', count: newInstitutionRequests.length },
     { id: 'invoices', label: 'Invoices', count: 0 },
     { id: 'manage-artisans', label: 'Artisans', count: applications.length },
-    { id: 'pending-workshops', label: 'Academy', count: pendingWorkshops.length },
+    { id: 'pending-workshops', label: 'Academy', count: pendingWorkshops.length + classBookings.filter(b => b.status === 'confirmed').length },
     { id: 'journal', label: 'Journal', count: 0 },
     { id: 'moderation', label: 'Reviews', count: pendingReviews.length },
     { id: 'shipping', label: 'Shipping', count: productOrders.filter(o => o.awb && o.shippingStatus !== 'Delivered').length },
@@ -941,6 +942,119 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               ) : (
                 <div className="grid grid-cols-1 gap-3">
                   {filteredActive.map(w => renderWorkshopCard(w, false))}
+                </div>
+              )}
+            </div>
+
+            {/* ── Workshop Bookings Section ─────────────────────────────── */}
+            <hr className="border-[#F0F0F0] mt-4" />
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-medium">Workshop Bookings ({classBookings.length})</h2>
+                <div className="flex gap-4 text-[10px] uppercase tracking-widest text-[#999]">
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 bg-amber-400 rounded-full"></span>Confirmed: {classBookings.filter(b => b.status === 'confirmed').length}</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 bg-green-500 rounded-full"></span>Completed: {classBookings.filter(b => b.status === 'completed').length}</span>
+                  <span className="text-[#8B735B] font-bold">Revenue: ₹{classBookings.filter(b => b.paymentStatus === 'completed').reduce((s, b) => s + b.amount, 0).toLocaleString()}</span>
+                </div>
+              </div>
+
+              {classBookings.length === 0 ? (
+                <div className="py-20 text-center border border-dashed border-[#E5E5E5] rounded-xl">
+                  <p className="serif italic text-xl text-[#CCC]">No bookings yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Group by workshop */}
+                  {Object.entries(
+                    classBookings.reduce((acc: Record<string, { title: string; artisan: string; bookings: any[] }>, b) => {
+                      if (!acc[b.workshopId]) acc[b.workshopId] = { title: b.workshopTitle, artisan: b.artisanName || '', bookings: [] };
+                      acc[b.workshopId].bookings.push(b);
+                      return acc;
+                    }, {})
+                  ).map(([wId, { title, artisan, bookings: wBookings }]) => {
+                    const workshop = workshops.find(w => w.id === wId);
+                    const confirmedCount = wBookings.filter(b => b.status === 'confirmed').length;
+                    return (
+                      <div key={wId} className="bg-white border border-[#E5E5E5] overflow-hidden shadow-sm">
+                        {/* Workshop header */}
+                        <div className="p-4 bg-[#FAF9F6] border-b border-[#F0F0F0] flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            {workshop?.image && <img src={workshop.image} className="w-10 h-10 object-cover rounded flex-shrink-0" alt="" />}
+                            <div>
+                              <h3 className="text-sm font-bold">{title}</h3>
+                              <p className="text-[10px] text-[#999] uppercase tracking-widest">By {artisan} · {workshop?.mode} · {workshop ? new Date(workshop.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            <span className="text-[10px] uppercase tracking-widest text-[#999]">{wBookings.length}/{workshop?.maxStudents || '?'} seats</span>
+                            {confirmedCount > 0 && (
+                              <button
+                                onClick={() => {
+                                  if (window.confirm(`Mark all ${confirmedCount} students as reminded for "${title}"?`)) {
+                                    wBookings.filter(b => b.status === 'confirmed').forEach(b => {
+                                      setDoc(doc(db, 'classBookings', b.id), { ...b, status: 'reminded', reminderSent: true });
+                                    });
+                                  }
+                                }}
+                                className="text-[9px] uppercase tracking-widest bg-amber-500 text-white px-4 py-2 hover:bg-amber-600 font-bold transition-all"
+                              >
+                                Send Reminder ({confirmedCount})
+                              </button>
+                            )}
+                            {workshop?.mode === 'online' && (
+                              <button
+                                onClick={() => {
+                                  const link = window.prompt(`Zoom/Meet link for "${title}":`);
+                                  if (link && workshop) setDoc(doc(db, 'workshops', workshop.id), { ...workshop, zoomLink: link });
+                                }}
+                                className="text-[9px] uppercase tracking-widest bg-indigo-600 text-white px-4 py-2 hover:bg-indigo-700 font-bold transition-all"
+                              >
+                                {workshop?.zoomLink ? 'Update Zoom' : '+ Zoom Link'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Students */}
+                        <div className="divide-y divide-[#F5F5F5]">
+                          {wBookings.map(b => (
+                            <div key={b.id} className="px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-[#FAF9F6] transition-colors">
+                              <div className="flex items-center gap-3 flex-1">
+                                <div className="w-8 h-8 rounded-full bg-[#8B735B]/10 flex items-center justify-center text-[#8B735B] font-serif italic text-sm flex-shrink-0">
+                                  {b.customerName.charAt(0)}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium">{b.customerName}</p>
+                                  <p className="text-[10px] text-[#999]">{b.customerEmail} · {b.customerPhone}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3 flex-shrink-0">
+                                <span className="text-xs font-bold text-green-600">₹{b.amount.toLocaleString()}</span>
+                                <span className={`text-[8px] uppercase tracking-widest px-2 py-1 rounded font-bold ${
+                                  b.status === 'confirmed' ? 'bg-blue-50 text-blue-700' :
+                                  b.status === 'reminded' ? 'bg-amber-50 text-amber-700' :
+                                  b.status === 'attended' || b.status === 'completed' ? 'bg-green-50 text-green-700' :
+                                  b.status === 'no-show' ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-500'
+                                }`}>{b.status}</span>
+                                <div className="flex gap-1">
+                                  {(b.status === 'confirmed' || b.status === 'reminded') && (
+                                    <>
+                                      <button onClick={() => setDoc(doc(db, 'classBookings', b.id), { ...b, status: 'attended', attendanceMarked: true })} className="text-[8px] uppercase tracking-widest bg-green-600 text-white px-2 py-1 hover:bg-green-700 font-bold">Attended</button>
+                                      <button onClick={() => setDoc(doc(db, 'classBookings', b.id), { ...b, status: 'no-show' })} className="text-[8px] uppercase tracking-widest border border-red-200 text-red-500 px-2 py-1 hover:bg-red-50">No Show</button>
+                                    </>
+                                  )}
+                                  {b.status === 'attended' && (
+                                    <button onClick={() => setDoc(doc(db, 'classBookings', b.id), { ...b, status: 'completed', reviewRequested: true })} className="text-[8px] uppercase tracking-widest bg-[#8B735B] text-white px-2 py-1 font-bold">Complete</button>
+                                  )}
+                                  <a href={`mailto:${b.customerEmail}?subject=Your booking for ${b.workshopTitle}&body=Dear ${b.customerName},%0A%0A`} className="text-[8px] uppercase tracking-widest border border-[#E5E5E5] px-2 py-1 hover:border-[#8B735B] transition-all">Email</a>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1674,6 +1788,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         );
       })()}
+
+
 
     </div>
   );

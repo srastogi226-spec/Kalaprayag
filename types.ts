@@ -82,6 +82,10 @@ export interface Workshop {
   status: 'pending' | 'approved' | 'rejected';
   image: string;
   skillLevel: 'Beginner' | 'Intermediate' | 'Advanced';
+  // ── Workshop process fields ──────────────────────────────────────────
+  zoomLink?: string;       // For online workshops
+  materialsNote?: string;  // Instructions for self-arranged materials
+  completedAt?: string;    // When workshop was marked done
 }
 
 export interface Review {
@@ -148,6 +152,7 @@ export interface ClassBooking {
   workshopId: string;
   workshopTitle: string;
   artisanId: string;
+  artisanName?: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -156,6 +161,13 @@ export interface ClassBooking {
   method: string;
   transactionId?: string;
   createdAt: string;
+  // ── Workshop process fields ───────────────────────────────────────────
+  status: 'confirmed' | 'reminded' | 'attended' | 'completed' | 'cancelled' | 'no-show';
+  reminderSent?: boolean;
+  attendanceMarked?: boolean;
+  reviewRequested?: boolean;
+  cancellationReason?: string;
+  adminNote?: string;
 }
 
 export interface InstitutionRequest {
