@@ -1026,49 +1026,59 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* Workshop tab — includes Workshops sub-tab and Group Booking sub-tab */}
       {activeTab === 'workshops' && (
-        <div className="flex items-center justify-between mb-6">
-          {/* Sub-filter pills */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-[#E5E5E5] sticky top-0 bg-[#FAF9F6] z-20 pt-2 -mt-2 mb-6">
+          
+          {/* Type Filters (Pills) — same layout as Orders tab */}
           <div className="flex gap-2 bg-white p-1 rounded-md border border-[#E5E5E5] shadow-sm">
             {[
-              { id: 'Workshops', label: 'Workshops', count: pendingWorkshops.length + activeWorkshops.length + classBookings.length },
-              { id: 'Group Booking', label: 'Group Booking', count: newInstitutionRequests.length },
+              { id: 'Workshops', label: 'Workshops', count: pendingWorkshops.length + activeWorkshops.length + classBookings.length, new: pendingWorkshops.length + classBookings.filter(b => b.status === 'confirmed').length },
+              { id: 'Group Booking', label: 'Group Booking', count: institutionRequests.length, new: newInstitutionRequests.length },
             ].map(sub => (
               <button
                 key={sub.id}
                 onClick={() => setWorkshopTabFilter(sub.id)}
-                className={`relative px-6 py-2.5 text-[11px] uppercase tracking-widest font-bold rounded-sm transition-all duration-300 flex items-center gap-2 ${
-                  workshopTabFilter === sub.id
-                    ? 'bg-[#2C2C2C] text-white shadow-md'
+                className={`relative px-6 py-2.5 text-[11px] uppercase tracking-widest font-bold rounded-sm transition-all duration-300 flex flex-col items-center justify-center min-w-[120px] ${
+                  workshopTabFilter === sub.id 
+                    ? 'bg-[#2C2C2C] text-white shadow-md' 
                     : 'text-[#999] hover:bg-gray-50 hover:text-[#2C2C2C]'
                 }`}
               >
-                {sub.label}
-                {sub.count > 0 && (
-                  <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] text-white shadow-sm font-bold animate-pulse">
-                    {sub.count}
+                <span>{sub.label}</span>
+                <span className={`text-[9px] mt-0.5 font-normal ${workshopTabFilter === sub.id ? 'text-gray-300' : 'text-[#BBB]'}`}>
+                  {sub.count} Total
+                </span>
+                {sub.new > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] text-white shadow-sm ring-2 ring-white font-bold animate-in zoom-in">
+                    {sub.new}
                   </span>
                 )}
               </button>
             ))}
           </div>
-          {/* Mode filter — only when Workshops sub-tab is active */}
+
+          {/* Mode Filter Dropdown — only when Workshops sub-tab is active */}
           {workshopTabFilter === 'Workshops' && (
             <div className="relative">
               <button
                 onClick={() => setShowWorkshopDropdown(!showWorkshopDropdown)}
-                className="text-[10px] uppercase tracking-widest border border-[#E5E5E5] px-5 py-2 rounded-md flex items-center gap-2 hover:border-[#2C2C2C] transition-all bg-white"
+                className="bg-white border border-[#E5E5E5] px-5 py-3 rounded-md flex items-center gap-3 text-[11px] uppercase tracking-widest font-bold text-[#666] hover:text-[#2C2C2C] hover:border-[#8B735B] transition-all shadow-sm min-w-[220px] justify-between"
               >
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
-                {workshopModeFilter === 'All' ? 'All Modes' : workshopModeFilter}
-                <svg className={`w-3 h-3 transition-transform ${showWorkshopDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                <span className="flex items-center gap-2">
+                  <svg className="w-3.5 h-3.5 text-[#8B735B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                  {workshopModeFilter === 'All' ? 'All Modes' : workshopModeFilter}
+                </span>
+                <svg className={`w-3.5 h-3.5 transition-transform duration-300 ${showWorkshopDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </button>
+              
               {showWorkshopDropdown && (
-                <div className="absolute top-full right-0 mt-1 bg-white border border-[#E5E5E5] shadow-lg rounded-md z-50 min-w-[180px] py-1">
+                <div className="absolute top-full right-0 mt-2 bg-white border border-[#E5E5E5] shadow-xl rounded-md z-50 min-w-full py-2 animate-in fade-in slide-in-from-top-2">
                   {['All', ...new Set(workshops.map(w => w.mode).filter(Boolean))].sort().map(mode => (
                     <button
                       key={mode}
                       onClick={() => { setWorkshopModeFilter(mode); setShowWorkshopDropdown(false); }}
-                      className={`w-full text-left px-4 py-2 text-[11px] uppercase tracking-widest hover:bg-[#F5F5F5] transition-all ${workshopModeFilter === mode ? 'text-[#2C2C2C] font-bold bg-[#F5F5F5]' : 'text-[#999]'}`}
+                      className={`w-full text-left px-5 py-2.5 text-[11px] uppercase tracking-widest transition-all ${
+                        workshopModeFilter === mode ? 'bg-[#FAF9F6] text-[#8B735B] font-bold border-l-2 border-[#8B735B]' : 'text-[#666] hover:bg-gray-50 border-l-2 border-transparent hover:text-[#2C2C2C]'
+                      }`}
                     >
                       {mode === 'All' ? 'All Modes' : mode}
                     </button>
