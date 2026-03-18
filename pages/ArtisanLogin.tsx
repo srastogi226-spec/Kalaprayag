@@ -60,22 +60,17 @@ const verifyApprovedArtisan = async (uid: string): Promise<any> => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ArtisanLogin: React.FC<ArtisanLoginProps> = ({ onSuccess, onJoin }) => {
-  const { login, loginWithGoogle, resetPassword } = useAuth();
+  const { loginWithGoogle } = useAuth();
 
-  const [mode, setMode] = useState<'login' | 'forgot'>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
 
-  const clearMessages = () => { setError(''); setInfo(''); };
+  const clearMessages = () => { setError(''); };
 
   // ── GOOGLE LOGIN ────────────────────────────────────────────────────────────
   const handleGoogle = async () => {
     setError('');
-    setGoogleLoading(true);
+    setLoading(true);
     try {
       // Step 1: Firebase Google auth
       const result = await loginWithGoogle();
@@ -107,76 +102,11 @@ const ArtisanLogin: React.FC<ArtisanLoginProps> = ({ onSuccess, onJoin }) => {
         setError('Google sign-in failed. Please try again or use email/password.');
       }
     } finally {
-      setGoogleLoading(false);
-    }
-  };
-
-  // ── EMAIL / PASSWORD LOGIN ──────────────────────────────────────────────────
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    clearMessages();
-    if (!email || !password) {
-      setError('Please enter your email and password.');
-      return;
-    }
-    setLoading(true);
-    try {
-      // Step 1: Firebase email/password auth
-      const result = await login(email, password);
-      const uid = result?.uid;
-
-      if (!uid) throw new Error('NO_ACCOUNT: Could not retrieve user.');
-
-      // Step 2: Verify approved artisan in Firestore
-      const artisanData = await verifyApprovedArtisan(uid);
-
-      // Step 3: Only approved artisans proceed
-      onSuccess(artisanData);
-
-    } catch (err: any) {
-      // Always sign out on any failure
-      await signOut(auth).catch(() => {});
-
-      const code = err.code;
-      if (
-        code === 'auth/user-not-found' ||
-        code === 'auth/wrong-password' ||
-        code === 'auth/invalid-credential'
-      ) {
-        setError('Invalid email or password. Please try again.');
-      } else if (err.message?.startsWith('PENDING:')) {
-        setError(err.message.replace('PENDING: ', ''));
-      } else if (err.message?.startsWith('REJECTED:')) {
-        setError(err.message.replace('REJECTED: ', ''));
-      } else if (err.message?.startsWith('SUSPENDED:')) {
-        setError(err.message.replace('SUSPENDED: ', ''));
-      } else if (err.message?.startsWith('NO_ACCOUNT:')) {
-        setError(err.message.replace('NO_ACCOUNT: ', ''));
-      } else if (err.message?.startsWith('ACCESS_DENIED:')) {
-        setError('Access denied. Please contact support.');
-      } else {
-        setError('Login failed. Please try again.');
-      }
-    } finally {
       setLoading(false);
     }
   };
 
-  // ── FORGOT PASSWORD ─────────────────────────────────────────────────────────
-  const handleForgot = async (e: React.FormEvent) => {
-    e.preventDefault();
-    clearMessages();
-    if (!email) { setError('Please enter your email address.'); return; }
-    setLoading(true);
-    try {
-      await resetPassword(email);
-      setInfo('Reset email sent! Check your inbox and spam folder.');
-    } catch {
-      setError('Failed to send reset email. Please check the address and try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   return (
     <div className="min-h-screen pt-32 pb-24 px-6 flex items-center justify-center bg-[#FAF9F6]">
@@ -188,12 +118,10 @@ const ArtisanLogin: React.FC<ArtisanLoginProps> = ({ onSuccess, onJoin }) => {
             Artisan Portal
           </span>
           <h1 className="text-4xl serif mt-3 mb-3">
-            {mode === 'login' ? 'Welcome Back' : 'Reset Password'}
+            Welcome Back
           </h1>
           <p className="text-[#999] text-sm font-light">
-            {mode === 'login'
-              ? 'Sign in to access your artisan dashboard.'
-              : "Enter your email and we'll send a reset link."}
+            Sign in to access your artisan dashboard.
           </p>
         </div>
 
@@ -201,119 +129,27 @@ const ArtisanLogin: React.FC<ArtisanLoginProps> = ({ onSuccess, onJoin }) => {
 
         <div className="bg-white border border-[#E5E5E5] p-8 shadow-sm space-y-5">
 
-          {/* Error / Info banners */}
           {error && (
-            <div className="bg-red-50 border border-red-100 text-red-700 text-xs p-3 leading-relaxed">
+            <div className="bg-red-50 border border-red-100 text-red-700 text-xs p-3 leading-relaxed text-center mb-6">
               {error}
             </div>
           )}
-          {info && (
-            <div className="bg-green-50 border border-green-100 text-green-700 text-xs p-3 leading-relaxed">
-              {info}
-            </div>
-          )}
 
-          {mode === 'login' && (
-            <>
-              {/* Google Sign-In */}
-              <button
-                type="button"
-                onClick={handleGoogle}
-                disabled={googleLoading || loading}
-                className="w-full flex items-center justify-center gap-3 border border-[#E5E5E5] py-3.5 text-sm font-medium text-[#2C2C2C] hover:bg-[#FAF9F6] hover:border-[#D1D1D1] transition-all disabled:opacity-50"
-              >
-                {googleLoading ? (
-                  <svg className="animate-spin w-5 h-5 text-[#8B735B]" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                ) : <GoogleIcon />}
-                {googleLoading ? 'Verifying...' : 'Continue with Google'}
-              </button>
-
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-[#E5E5E5]" />
-                <span className="text-[10px] uppercase tracking-widest text-[#CCC]">or</span>
-                <div className="flex-1 h-px bg-[#E5E5E5]" />
-              </div>
-
-              {/* Email/Password Login */}
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <label className="text-[10px] uppercase tracking-widest text-[#999] block mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="w-full border border-[#E5E5E5] p-3.5 text-sm focus:outline-none focus:border-[#2C2C2C] transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] uppercase tracking-widest text-[#999] block mb-2">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full border border-[#E5E5E5] p-3.5 text-sm focus:outline-none focus:border-[#2C2C2C] transition-all"
-                  />
-                </div>
-                <div className="text-right">
-                  <button
-                    type="button"
-                    onClick={() => { setMode('forgot'); clearMessages(); }}
-                    className="text-[10px] text-[#8B735B] uppercase tracking-widest hover:underline"
-                  >
-                    Forgot Password?
-                  </button>
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-[#2C2C2C] text-white py-4 text-xs uppercase tracking-[0.3em] font-bold hover:bg-[#8B735B] transition-all disabled:opacity-50"
-                >
-                  {loading ? 'Verifying...' : 'Sign In'}
-                </button>
-              </form>
-            </>
-          )}
-
-          {/* Forgot Password */}
-          {mode === 'forgot' && (
-            <form onSubmit={handleForgot} className="space-y-4">
-              <div>
-                <label className="text-[10px] uppercase tracking-widest text-[#999] block mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full border border-[#E5E5E5] p-3.5 text-sm focus:outline-none focus:border-[#2C2C2C] transition-all"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[#2C2C2C] text-white py-4 text-xs uppercase tracking-[0.3em] font-bold hover:bg-[#8B735B] transition-all disabled:opacity-50"
-              >
-                {loading ? 'Sending...' : 'Send Reset Email'}
-              </button>
-              <button
-                type="button"
-                onClick={() => { setMode('login'); clearMessages(); }}
-                className="w-full py-3 text-xs uppercase tracking-widest text-[#999] hover:text-[#2C2C2C] transition-all"
-              >
-                ← Back to Sign In
-              </button>
-            </form>
-          )}
+          {/* Google Sign-In */}
+          <button
+            type="button"
+            onClick={handleGoogle}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 border border-[#E5E5E5] py-3.5 text-sm font-medium text-[#2C2C2C] hover:bg-[#FAF9F6] hover:border-[#D1D1D1] transition-all disabled:opacity-50"
+          >
+            {loading ? (
+              <svg className="animate-spin w-5 h-5 text-[#8B735B]" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            ) : <GoogleIcon />}
+            {loading ? 'Verifying...' : 'Continue with Google'}
+          </button>
         </div>
 
         {/* Apply CTA */}

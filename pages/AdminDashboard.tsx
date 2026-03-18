@@ -3,9 +3,7 @@ import { compressImage } from '../utils/imageUtils';
 import {
   GoogleAuthProvider,
   signInWithPopup,
-  signInWithEmailAndPassword,
-  signOut,
-  sendPasswordResetEmail
+  signOut
 } from "firebase/auth";
 import { auth, db } from '../firebase';
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
@@ -42,10 +40,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     try { return sessionStorage.getItem('kp_admin_auth') === 'true'; } catch { return false; }
   });
-  const [emailInput, setEmailInput] = useState('');
-  const [pwInput, setPwInput] = useState('');
   const [pwError, setPwError] = useState('');
-  const [message, setMessage] = useState('');
 
   // Dashboard states
   const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'workshops' | 'product-orders' | 'artisans' | 'manage-artisans' | 'pending-products' | 'pending-workshops' | 'active-workshops' | 'moderation' | 'marketplace-requests' | 'institution-requests' | 'journal' | 'invoices' | 'shipping' | 'bookings'>('inventory');
@@ -100,25 +95,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // ✅ Password login disabled — only Google login allowed for security
-    setPwError('Password login is disabled. Please use Google Sign-In with your authorized account.');
-  };
 
-  const handleResetPassword = async () => {
-    if (!emailInput.includes('@')) {
-      setPwError('Please enter your email address first.');
-      return;
-    }
-    try {
-      await sendPasswordResetEmail(auth, emailInput);
-      setMessage('Reset link sent! Check your inbox.');
-      setPwError('');
-    } catch (error: any) {
-      setPwError('Error: ' + error.message);
-    }
-  };
 
   const handleAdminLogout = async () => {
     try {
@@ -139,52 +116,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <h1 className="text-4xl serif mt-3 mb-3">Admin Console</h1>
             <p className="text-[#999] text-sm font-light">Enter your credentials to continue.</p>
           </div>
-          <form onSubmit={handleEmailLogin} className="bg-white border border-[#E5E5E5] p-8 shadow-sm space-y-5">
-            {pwError && (
-              <div className="bg-red-50 text-red-700 text-xs p-3 leading-relaxed rounded">
-                {pwError}
-              </div>
-            )}
-            {message && (
-              <div className="bg-green-50 text-green-700 text-xs p-3 leading-relaxed rounded">
-                {message}
-              </div>
-            )}
-            <div>
-              <label className="text-[10px] uppercase tracking-widest text-[#999] block mb-2">Email</label>
-              <input
-                type="email"
-                value={emailInput}
-                onChange={e => { setEmailInput(e.target.value); setPwError(''); }}
-                placeholder="admin@kalaprayag.com"
-                className="w-full border border-[#E5E5E5] p-3.5 text-sm focus:outline-none focus:border-[#2C2C2C] transition-all rounded"
-              />
+          {pwError && (
+            <div className="bg-red-50 text-red-700 text-xs p-3 leading-relaxed rounded mb-6 text-center">
+              {pwError}
             </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-widest text-[#999] block mb-2">Password</label>
-              <input
-                type="password"
-                value={pwInput}
-                onChange={e => { setPwInput(e.target.value); setPwError(''); }}
-                placeholder="••••••••"
-                className="w-full border border-[#E5E5E5] p-3.5 text-sm focus:outline-none focus:border-[#2C2C2C] transition-all rounded"
-              />
-            </div>
-            <button type="submit" className="w-full bg-[#2C2C2C] text-white py-4 text-xs uppercase tracking-[0.3em] font-bold hover:bg-[#8B735B] transition-all rounded">
-              Enter Console
-            </button>
-            <div className="text-center mt-4">
-              <button type="button" onClick={handleResetPassword} className="text-[10px] uppercase tracking-widest text-[#999] hover:text-[#2C2C2C] transition-all">
-                Forgot Password?
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-8 flex items-center justify-center space-x-4">
-            <span className="h-px bg-[#E5E5E5] w-full"></span>
-            <span className="text-[10px] uppercase tracking-widest text-[#999]">OR</span>
-            <span className="h-px bg-[#E5E5E5] w-full"></span>
-          </div>
+          )}
 
           <button onClick={handleGoogleLogin} type="button" className="mt-6 w-full bg-white border border-[#E5E5E5] text-[#2C2C2C] py-4 text-xs uppercase tracking-[0.3em] font-bold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all shadow-sm rounded">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-4 h-4" />
