@@ -48,7 +48,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [message, setMessage] = useState('');
 
   // Dashboard states
-  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'product-orders' | 'artisans' | 'manage-artisans' | 'pending-products' | 'pending-workshops' | 'active-workshops' | 'moderation' | 'marketplace-requests' | 'institution-requests' | 'journal' | 'invoices' | 'shipping' | 'bookings'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'workshops' | 'product-orders' | 'artisans' | 'manage-artisans' | 'pending-products' | 'pending-workshops' | 'active-workshops' | 'moderation' | 'marketplace-requests' | 'institution-requests' | 'journal' | 'invoices' | 'shipping' | 'bookings'>('inventory');
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null);
   const [invoiceTypeFilter, setInvoiceTypeFilter] = useState('All');
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState('All');
@@ -64,6 +64,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [showWorkshopDropdown, setShowWorkshopDropdown] = useState(false);
   const [orderTypeFilter, setOrderTypeFilter] = useState('All');
   const [showOrderDropdown, setShowOrderDropdown] = useState(false);
+  const [workshopTabFilter, setWorkshopTabFilter] = useState('Workshops');
   const [orderArtisanFilter, setOrderArtisanFilter] = useState('All');
   const [showOrderArtisanDropdown, setShowOrderArtisanDropdown] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
@@ -272,10 +273,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const tabs = [
     { id: 'inventory', label: 'Inventory', count: pendingProds.length },
     { id: 'orders', label: 'Orders', count: pendingOrders.length + productOrders.filter(o => o.status === 'pending').length },
-    { id: 'institution-requests', label: 'Group Bookings', count: newInstitutionRequests.length },
+    { id: 'workshops', label: 'Workshops', count: newInstitutionRequests.length + pendingWorkshops.length + classBookings.filter(b => b.status === 'confirmed').length },
     { id: 'invoices', label: 'Invoices', count: 0 },
     { id: 'manage-artisans', label: 'Artisans', count: applications.length },
-    { id: 'pending-workshops', label: 'Academy', count: pendingWorkshops.length + classBookings.filter(b => b.status === 'confirmed').length },
     { id: 'journal', label: 'Journal', count: 0 },
     { id: 'moderation', label: 'Reviews', count: pendingReviews.length },
     { id: 'shipping', label: 'Shipping', count: productOrders.filter(o => o.awb && o.shippingStatus !== 'Delivered').length },
@@ -1024,34 +1024,65 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       })()}
 
 
-      {/* Workshop mode filter — only on academy tab */}
-      {activeTab === 'pending-workshops' && (
-        <div className="flex justify-end mb-6 relative">
-          <button
-            onClick={() => setShowWorkshopDropdown(!showWorkshopDropdown)}
-            className="text-[10px] uppercase tracking-widest border border-[#E5E5E5] px-5 py-2 rounded-md flex items-center gap-2 hover:border-[#2C2C2C] transition-all bg-white"
-          >
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
-            {workshopModeFilter === 'All' ? 'All Modes' : workshopModeFilter}
-            <svg className={`w-3 h-3 transition-transform ${showWorkshopDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-          </button>
-          {showWorkshopDropdown && (
-            <div className="absolute top-full right-0 mt-1 bg-white border border-[#E5E5E5] shadow-lg rounded-md z-50 min-w-[180px] py-1">
-              {['All', ...new Set(workshops.map(w => w.mode).filter(Boolean))].sort().map(mode => (
-                <button
-                  key={mode}
-                  onClick={() => { setWorkshopModeFilter(mode); setShowWorkshopDropdown(false); }}
-                  className={`w-full text-left px-4 py-2 text-[11px] uppercase tracking-widest hover:bg-[#F5F5F5] transition-all ${workshopModeFilter === mode ? 'text-[#2C2C2C] font-bold bg-[#F5F5F5]' : 'text-[#999]'
-                    }`}
-                >
-                  {mode === 'All' ? 'All Modes' : mode}
-                </button>
-              ))}
+      {/* Workshop tab — includes Workshops sub-tab and Group Booking sub-tab */}
+      {activeTab === 'workshops' && (
+        <div className="flex items-center justify-between mb-6">
+          {/* Sub-filter pills */}
+          <div className="flex gap-2 bg-white p-1 rounded-md border border-[#E5E5E5] shadow-sm">
+            {[
+              { id: 'Workshops', label: 'Workshops', count: pendingWorkshops.length + activeWorkshops.length + classBookings.length },
+              { id: 'Group Booking', label: 'Group Booking', count: newInstitutionRequests.length },
+            ].map(sub => (
+              <button
+                key={sub.id}
+                onClick={() => setWorkshopTabFilter(sub.id)}
+                className={`relative px-6 py-2.5 text-[11px] uppercase tracking-widest font-bold rounded-sm transition-all duration-300 flex items-center gap-2 ${
+                  workshopTabFilter === sub.id
+                    ? 'bg-[#2C2C2C] text-white shadow-md'
+                    : 'text-[#999] hover:bg-gray-50 hover:text-[#2C2C2C]'
+                }`}
+              >
+                {sub.label}
+                {sub.count > 0 && (
+                  <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] text-white shadow-sm font-bold animate-pulse">
+                    {sub.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          {/* Mode filter — only when Workshops sub-tab is active */}
+          {workshopTabFilter === 'Workshops' && (
+            <div className="relative">
+              <button
+                onClick={() => setShowWorkshopDropdown(!showWorkshopDropdown)}
+                className="text-[10px] uppercase tracking-widest border border-[#E5E5E5] px-5 py-2 rounded-md flex items-center gap-2 hover:border-[#2C2C2C] transition-all bg-white"
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                {workshopModeFilter === 'All' ? 'All Modes' : workshopModeFilter}
+                <svg className={`w-3 h-3 transition-transform ${showWorkshopDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {showWorkshopDropdown && (
+                <div className="absolute top-full right-0 mt-1 bg-white border border-[#E5E5E5] shadow-lg rounded-md z-50 min-w-[180px] py-1">
+                  {['All', ...new Set(workshops.map(w => w.mode).filter(Boolean))].sort().map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => { setWorkshopModeFilter(mode); setShowWorkshopDropdown(false); }}
+                      className={`w-full text-left px-4 py-2 text-[11px] uppercase tracking-widest hover:bg-[#F5F5F5] transition-all ${workshopModeFilter === mode ? 'text-[#2C2C2C] font-bold bg-[#F5F5F5]' : 'text-[#999]'}`}
+                    >
+                      {mode === 'All' ? 'All Modes' : mode}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
-      {activeTab === 'pending-workshops' && (() => {
+      {activeTab === 'workshops' && (() => {
+        if (workshopTabFilter === 'Group Booking') {
+          return null; // Group Booking content rendered separately below
+        }
         const modeFn = (w: Workshop) => workshopModeFilter === 'All' || w.mode === workshopModeFilter;
         const filteredPending = pendingWorkshops.filter(modeFn);
         const filteredActive = activeWorkshops.filter(modeFn);
@@ -1313,7 +1344,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
 
 
-      {activeTab === 'institution-requests' && (
+      {activeTab === 'workshops' && workshopTabFilter === 'Group Booking' && (
         <div className="space-y-8">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-medium">Group & Institutional Requests ({institutionRequests.length})</h2>
