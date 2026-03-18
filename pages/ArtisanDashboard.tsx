@@ -740,332 +740,346 @@ const ArtisanDashboard: React.FC<ArtisanDashboardProps> = ({
         </div>
       )}
 
-      {activeTab === 'orders' && (
-        <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-xl font-medium">All Orders</h2>
-              <p className="text-xs text-[#999] mt-1">Manage both shop piece sales and order commissions.</p>
-            </div>
-            <select
-              value={orderTypeFilter}
-              onChange={(e) => setOrderTypeFilter(e.target.value as any)}
-              className="px-4 py-2 border border-[#E5E5E5] text-xs uppercase tracking-widest text-[#666] focus:outline-none focus:border-[#2C2C2C] bg-white font-bold"
-            >
-              <option value="all">All Orders {(newOrdersCount + newProductOrdersCount) > 0 ? `(${(newOrdersCount + newProductOrdersCount)} New)` : ''}</option>
-              <option value="custom">Custom Orders {newOrdersCount > 0 ? `(${newOrdersCount} New)` : ''}</option>
-              <option value="shop">Shop Orders {newProductOrdersCount > 0 ? `(${newProductOrdersCount} New)` : ''}</option>
-            </select>
-          </div>
+      {activeTab === 'orders' && (() => {
+        // ── Derived stats ──────────────────────────────
+        const totalCustom = myOrders.length;
+        const totalShop   = myProductOrders.length;
+        const totalAll    = totalCustom + totalShop;
+        const pendingAll  = myOrders.filter(o => o.artisanStatus === 'waiting').length + myProductOrders.filter(o => o.status === 'pending').length;
+        const completedAll= myOrders.filter(o => o.artisanStatus === 'completed').length + myProductOrders.filter(o => o.status === 'delivered').length;
+        const totalAdvance= myOrders.reduce((s, o) => s + (o.advancePayment?.amount || 0), 0);
 
-          {/* Custom Orders Section */}
-          {(orderTypeFilter === 'all' || orderTypeFilter === 'custom') && (
-            <div className={`space-y-6 ${orderTypeFilter === 'all' ? 'mb-16' : ''}`}>
-              <h3 className="text-xl serif italic border-b border-[#E5E5E5] pb-3 text-[#2C2C2C]">Custom Commissions</h3>
-              {myOrders.length === 0 ? (
-                <div className="py-20 text-center bg-white border border-[#E5E5E5]">
-                  <p className="serif text-2xl italic text-[#999]">No custom commissions found.</p>
-                  <p className="text-sm text-[#BBB] mt-2">When collectors request bespoke pieces, they will appear here.</p>
+        // Grouping helpers
+        const groupByMonth = <T extends { createdAt: string }>(arr: T[]): [string, T[]][] => {
+          const sorted = [...arr].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          const map: Record<string, T[]> = {};
+          sorted.forEach(item => {
+            const k = new Date(item.createdAt).toLocaleDateString('default', { month: 'long', year: 'numeric' });
+            if (!map[k]) map[k] = [];
+            map[k].push(item);
+          });
+          return Object.entries(map);
+        };
+
+        const fmtDate = (d: string) => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+        const customStatusStyle = (status: string) => {
+          if (status === 'waiting')   return 'bg-amber-50  text-amber-700  border-amber-200';
+          if (status === 'accepted')  return 'bg-blue-50   text-blue-700   border-blue-200';
+          if (status === 'completed') return 'bg-green-50  text-green-700  border-green-200';
+          return 'bg-gray-50 text-gray-600 border-gray-200';
+        };
+        const shopStatusStyle = (status: string) => {
+          if (status === 'pending')   return 'bg-amber-50  text-amber-700  border-amber-200';
+          if (status === 'confirmed') return 'bg-blue-50   text-blue-700   border-blue-200';
+          if (status === 'shipped')   return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+          if (status === 'delivered') return 'bg-green-50  text-green-700  border-green-200';
+          return 'bg-red-50 text-red-700 border-red-200';
+        };
+        const dotColor = (style: string) => style.includes('amber') ? 'bg-amber-400' : style.includes('blue') ? 'bg-blue-400' : style.includes('indigo') ? 'bg-indigo-400' : style.includes('green') ? 'bg-green-400' : 'bg-red-400';
+
+        return (
+          <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
+
+            {/* ── Stat Summary Row ── */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: 'Total Orders',    value: totalAll,        sub: `${totalCustom} custom · ${totalShop} shop` },
+                { label: 'Needs Action',    value: pendingAll,      sub: 'Awaiting your response' },
+                { label: 'Completed',       value: completedAll,    sub: 'Successfully fulfilled' },
+                { label: 'Advance Received',value: `₹${totalAdvance.toLocaleString()}`, sub: 'From custom orders' },
+              ].map(({ label, value, sub }) => (
+                <div key={label} className="bg-white border border-[#E5E5E5] rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+                  <p className="text-[10px] uppercase tracking-widest text-[#999] font-semibold mb-2">{label}</p>
+                  <p className="text-3xl font-bold text-[#1A1A1A] tracking-tight">{value}</p>
+                  <p className="text-[10px] text-[#BBB] mt-1.5">{sub}</p>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                  {[...myOrders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(o => {
-                    const isExpanded = !!expandedOrders[o.id];
-                    return (
-                      <div key={o.id} className={`bg-white border transition-all duration-300 flex flex-col ${isExpanded ? 'ring-1 ring-[#8B735B] shadow-lg scale-[1.01]' : 'shadow-sm hover:shadow-md hover:border-[#8B735B]/40'} ${o.artisanStatus === 'waiting' ? 'border-amber-300 bg-amber-50/10' : 'border-[#E5E5E5]'}`}>
-                        
-                        {/* --- Card Header --- */}
-                        <div className="p-6 pb-4 border-b border-gray-50 flex justify-between items-start">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              {o.artisanStatus === 'waiting' && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>}
-                              {o.artisanStatus === 'accepted' && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
-                              {o.artisanStatus === 'completed' && <span className="w-2 h-2 rounded-full bg-green-500"></span>}
-                              <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">{o.id}</p>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(o.id); alert('ID Copied!'); }}
-                                className="text-[#BBB] hover:text-[#8B735B] transition-colors"
-                              >
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
-                              </button>
-                            </div>
-                            <h4 className="text-xl serif">{o.customerName}</h4>
-                          </div>
-                          
-                          <div className={`px-3 py-1 text-[9px] uppercase tracking-widest font-bold border rounded-full
-                            ${o.artisanStatus === 'waiting' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
-                              o.artisanStatus === 'completed' ? 'bg-green-50 text-green-700 border-green-200' : 
-                              'bg-blue-50 text-blue-700 border-blue-200'}
-                          `}>
-                            {o.artisanStatus}
-                          </div>
+              ))}
+            </div>
+
+            {/* ── Filter Tabs ── */}
+            <div className="flex items-center gap-1 bg-[#F5F5F5] p-1 rounded-lg w-fit">
+              {(['all','custom','shop'] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setOrderTypeFilter(f)}
+                  className={`px-5 py-2 text-[10px] uppercase tracking-widest font-bold rounded-md transition-all flex items-center gap-2 ${
+                    orderTypeFilter === f ? 'bg-white text-[#1A1A1A] shadow-sm' : 'text-[#999] hover:text-[#555]'
+                  }`}
+                >
+                  {f === 'all'    ? 'All Orders' : f === 'custom' ? 'Custom' : 'Shop Orders'}
+                  {f === 'custom' && newOrdersCount > 0 && <span className="bg-amber-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center">{newOrdersCount}</span>}
+                  {f === 'shop'   && newProductOrdersCount > 0 && <span className="bg-amber-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center">{newProductOrdersCount}</span>}
+                </button>
+              ))}
+            </div>
+
+            {/* ── Custom Commissions Table ── */}
+            {(orderTypeFilter === 'all' || orderTypeFilter === 'custom') && (
+              <div className="space-y-2">
+                {orderTypeFilter === 'all' && <h3 className="text-xs uppercase tracking-[0.2em] font-bold text-[#8B735B] mb-3">Custom Commissions</h3>}
+                {myOrders.length === 0 ? (
+                  <div className="py-20 text-center bg-white border border-[#E5E5E5] rounded-lg">
+                    <p className="text-3xl mb-2">🎨</p>
+                    <p className="text-sm font-medium text-[#555]">No custom commissions yet</p>
+                    <p className="text-xs text-[#BBB] mt-1">Collector requests assigned to you will appear here.</p>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-[#E5E5E5] rounded-lg overflow-hidden shadow-sm">
+                    {/* Table header */}
+                    <div className="grid grid-cols-[2fr_1.5fr_2fr_1.5fr_1.2fr_1.2fr_1fr] gap-0 px-5 py-3 border-b border-[#F0F0F0] bg-[#FAFAFA]">
+                      {['Order ID', 'Date', 'Customer', 'Category', 'Advance', 'Status', 'Action'].map(h => (
+                        <p key={h} className="text-[9px] uppercase tracking-widest text-[#AAA] font-bold">{h}</p>
+                      ))}
+                    </div>
+                    {/* Grouped rows */}
+                    {groupByMonth(myOrders).map(([monthYear, orders]) => (
+                      <div key={monthYear}>
+                        {/* Month divider */}
+                        <div className="px-5 py-2 bg-[#F9F8F6] border-y border-[#EFEFEF]">
+                          <span className="text-[9px] uppercase tracking-[0.25em] font-bold text-[#8B735B]">{monthYear}</span>
                         </div>
-
-                        {/* --- Card Body --- */}
-                        <div className="p-6 flex-grow space-y-5">
-                          <div>
-                            <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-1">Vision</p>
-                            <p className="text-sm text-[#4A4A4A] leading-relaxed italic line-clamp-3">"{o.concept}"</p>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4 pt-2">
-                            <div>
-                              <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">Category</p>
-                              <p className="text-sm font-medium mt-0.5">{o.category}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">Advance</p>
-                              <p className="text-sm font-bold text-[#8B735B] mt-0.5">₹ {o.advancePayment?.amount?.toLocaleString()}</p>
-                            </div>
-                          </div>
-
-                          {o.adminNote && (
-                            <div className="bg-amber-50/50 p-3 border border-amber-100 rounded-sm">
-                              <p className="text-[9px] uppercase tracking-widest text-amber-800 font-bold mb-1 flex items-center gap-1.5">
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                Admin Note
-                              </p>
-                              <p className="text-xs text-amber-900">{o.adminNote}</p>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* --- Card Footer & Actions --- */}
-                        <div className="mt-auto">
-                          {!isExpanded ? (
-                            <button 
-                              onClick={() => toggleOrderExpansion(o.id)}
-                              className="w-full py-4 border-t border-gray-100 text-[10px] uppercase tracking-widest font-bold text-[#666] hover:text-[#2C2C2C] hover:bg-gray-50 flex items-center justify-center gap-2 transition-all"
-                            >
-                              View Full Details 
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>
-                            </button>
-                          ) : (
-                            <div className="border-t border-[#F0F0F0] bg-[#FAF9F6] animate-in slide-in-from-top-4 duration-300 flex flex-col h-full">
-                              
-                              <div className="p-6 space-y-6 flex-grow">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div><p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">Size / Dims</p><p className="text-sm font-medium mt-1">{o.size || o.dimensions}</p></div>
-                                  <div><p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">Finish</p><p className="text-sm font-medium mt-1">{o.finish}</p></div>
-                                </div>
-                                
-                                <div className="pt-4 border-t border-[#E5E5E5]">
-                                  <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-2">Customer Details</p>
-                                  <p className="text-sm">{o.email}</p>
-                                  <p className="text-sm">{o.phone}</p>
-                                </div>
-                              </div>
-
-                              {/* Actions Block */}
-                              <div className="p-6 pt-0 mt-auto">
-                                {o.artisanStatus === 'waiting' && (
-                                  <div className="space-y-3">
-                                    <textarea
-                                      rows={2}
-                                      placeholder="Note to customer (e.g. I can start next week)..."
-                                      className="w-full border border-[#D1D1D1] p-3 text-sm focus:outline-none focus:border-[#2C2C2C] resize-none rounded-sm"
-                                      value={artisanNotes[o.id] || ''}
-                                      onChange={e => setArtisanNotes(prev => ({ ...prev, [o.id]: e.target.value }))}
-                                    />
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); onAcceptOrder(o.id, artisanNotes[o.id] || ''); }}
-                                      className="w-full bg-[#2C2C2C] text-white py-3.5 text-[11px] uppercase tracking-widest font-bold hover:bg-[#8B735B] transition-all rounded-sm shadow-md"
-                                    >
-                                      Accept Commission
-                                    </button>
-                                  </div>
-                                )}
-                                
-                                {o.artisanStatus === 'accepted' && (
-                                  <div className="flex flex-col gap-3">
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); onUpdateCustomOrder?.({ ...o, artisanStatus: 'completed', status: 'completed', acceptedAt: o.acceptedAt || new Date().toISOString() }); }}
-                                      className="w-full bg-[#2C2C2C] text-white py-3.5 text-[10px] uppercase tracking-widest font-bold hover:bg-[#8B735B] transition-all rounded-sm shadow-md"
-                                    >
-                                      Mark as Completed ✓
-                                    </button>
-                                    <a href={`https://wa.me/${o.phone?.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(o.customerName)}!%20I'm%20${encodeURIComponent(artisan.brandName || artisan.name)}%20from%20Kala%20Prayag.%20I'm%20calling%20about%20your%20custom%20order%20(${o.id}).%20Let's%20discuss%20the%20progress!`}
-                                      target="_blank" rel="noreferrer"
-                                      className="flex items-center justify-center gap-2 w-full border border-[#D1D1D1] text-[#2C2C2C] hover:bg-[#25D366] hover:border-[#25D366] hover:text-white py-3 text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm"
-                                    >
-                                      WhatsApp Customer
-                                    </a>
-                                  </div>
-                                )}
-                              </div>
-
-                              <button 
+                        {orders.map(o => {
+                          const isExpanded = !!expandedOrders[o.id];
+                          const statusStyle = customStatusStyle(o.artisanStatus);
+                          return (
+                            <div key={o.id} className={`border-b border-[#F5F5F5] last:border-b-0 transition-colors ${isExpanded ? 'bg-[#FDFCFB]' : 'hover:bg-[#FCFCFC]'}`}>
+                              {/* Row */}
+                              <div
+                                className="grid grid-cols-[2fr_1.5fr_2fr_1.5fr_1.2fr_1.2fr_1fr] gap-0 px-5 py-3.5 cursor-pointer items-center"
                                 onClick={() => toggleOrderExpansion(o.id)}
-                                className="w-full py-4 border-t border-[#E5E5E5] text-[10px] uppercase tracking-widest font-bold text-[#666] hover:bg-gray-100 flex items-center justify-center gap-2 transition-all mt-auto"
                               >
-                                Hide Details
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 15l7-7 7 7" /></svg>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Shop Orders Section */}
-          {(orderTypeFilter === 'all' || orderTypeFilter === 'shop') && (
-            <div className={`space-y-6 ${orderTypeFilter === 'all' ? 'pt-12 border-t border-gray-100 mt-12' : ''}`}>
-              <h3 className="text-xl serif italic border-b border-[#E5E5E5] pb-3 text-[#2C2C2C]">Masterpiece Sales</h3>
-              {myProductOrders.length === 0 ? (
-                <div className="py-20 text-center bg-white border border-[#E5E5E5]">
-                  <p className="serif text-2xl italic text-[#999]">No shop orders yet.</p>
-                  <p className="text-sm text-[#BBB] mt-2">Sales from your listed artwork will appear here.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                  {[...myProductOrders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(o => {
-                    const isExpanded = !!expandedOrders[o.id];
-                    // Filter items to only show what belongs to THIS artisan if it's a multi-artisan order
-                    const myItems = o.items.filter(item => {
-                      const product = products.find(p => p.id === item.productId);
-                      return product?.artisanId === artisan.id;
-                    });
-                    const mySubtotal = myItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-                    return (
-                      <div key={o.id} className={`bg-white border transition-all duration-300 flex flex-col ${isExpanded ? 'ring-1 ring-[#8B735B] shadow-lg scale-[1.01]' : 'shadow-sm hover:shadow-md hover:border-[#8B735B]/40'} ${o.status === 'pending' ? 'border-amber-300 bg-amber-50/10' : 'border-[#E5E5E5]'}`}>
-                        
-                        {/* --- Card Header --- */}
-                        <div className="p-6 pb-4 border-b border-gray-50 flex justify-between items-start">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              {o.status === 'pending' && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>}
-                              {o.status === 'delivered' && <span className="w-2 h-2 rounded-full bg-green-500"></span>}
-                              {(o.status === 'confirmed' || o.status === 'shipped') && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
-                              <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">{o.id}</p>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(o.id); alert('ID Copied!'); }}
-                                className="text-[#BBB] hover:text-[#8B735B] transition-colors"
-                              >
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
-                              </button>
-                            </div>
-                            <h4 className="text-xl serif">{o.customerName}</h4>
-                          </div>
-                          
-                          <div className={`px-3 py-1 text-[9px] uppercase tracking-widest font-bold border rounded-full
-                            ${o.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.2)]' :
-                              o.status === 'confirmed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                              o.status === 'shipped' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
-                              o.status === 'delivered' ? 'bg-green-50 text-green-700 border-green-200' :
-                              'bg-red-50 text-red-700 border-red-200'}
-                          `}>
-                            {o.status}
-                          </div>
-                        </div>
-
-                        {/* --- Card Body --- */}
-                        <div className="p-6 flex-grow">
-                          <div className="flex justify-between items-end mb-4">
-                            <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">My Subtotal</p>
-                            <p className="text-xl font-bold text-[#2C2C2C]">₹ {mySubtotal.toLocaleString()}</p>
-                          </div>
-
-                          <div className="space-y-3">
-                            <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold border-b border-gray-50 pb-2">Products</p>
-                            {myItems.map((item, i) => (
-                              <div key={i} className="flex items-center gap-3">
-                                <img src={item.image} className="w-10 h-10 object-cover rounded shadow-sm border border-[#E5E5E5]" alt="" />
-                                <div className="flex-grow">
-                                  <p className="text-xs font-semibold text-[#2C2C2C] truncate pr-2 leading-tight">{item.name}</p>
-                                  <p className="text-[9px] text-[#888] mt-0.5 uppercase tracking-wide">Qty: {item.quantity}</p>
+                                <div className="flex items-center gap-2">
+                                  {o.artisanStatus === 'waiting' && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />}
+                                  <p className="text-xs font-mono text-[#555] truncate">#{o.id.slice(-8)}</p>
                                 </div>
-                                <p className="text-xs font-bold text-[#8B735B]">₹{(item.price * item.quantity).toLocaleString()}</p>
-                              </div>
-                            ))}
-                            {myItems.length < o.items.length && (
-                              <p className="text-[9px] text-[#BBB] italic mt-2 bg-gray-50 p-2 rounded-sm border border-gray-100">+ Includes other items.</p>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* --- Card Footer & Actions --- */}
-                        <div className="mt-auto">
-                          {!isExpanded ? (
-                            <button 
-                              onClick={() => toggleOrderExpansion(o.id)}
-                              className="w-full py-4 border-t border-gray-100 text-[10px] uppercase tracking-widest font-bold text-[#666] hover:text-[#2C2C2C] hover:bg-gray-50 flex items-center justify-center gap-2 transition-all"
-                            >
-                              Fulfillment Details 
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>
-                            </button>
-                          ) : (
-                            <div className="border-t border-[#F0F0F0] bg-[#FAF9F6] animate-in slide-in-from-top-4 duration-300 flex flex-col h-full">
-                              
-                              <div className="p-6 space-y-6 flex-grow">
+                                <p className="text-xs text-[#666]">{fmtDate(o.createdAt)}</p>
+                                <p className="text-xs font-semibold text-[#1A1A1A] truncate pr-2">{o.customerName}</p>
+                                <p className="text-xs text-[#666] truncate">{o.category}</p>
+                                <p className="text-xs font-bold text-[#8B735B]">₹{(o.advancePayment?.amount || 0).toLocaleString()}</p>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-2">Shipping Details</p>
-                                  <div className="bg-white p-4 border border-[#F0F0F0] rounded-sm shadow-sm space-y-1">
-                                    <p className="text-xs font-semibold">{o.customerName}</p>
-                                    <p className="text-[10px] text-[#666] leading-relaxed">{o.shippingAddress}</p>
-                                    <p className="text-[10px] font-medium text-[#2C2C2C] pt-1">{o.city} — {o.pincode}</p>
-                                  </div>
+                                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold border ${statusStyle}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${dotColor(statusStyle)}`} />
+                                    {o.artisanStatus}
+                                  </span>
                                 </div>
-                                
-                                <div className="pt-4 border-t border-[#E5E5E5]">
-                                  <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-2">Update Status</p>
-                                  <div className="flex gap-2">
-                                    {['confirmed', 'shipped', 'delivered'].map((s) => (
-                                      <button
-                                        key={s}
-                                        onClick={(e) => { e.stopPropagation(); onUpdateProductOrder?.({ ...o, status: s as any }); }}
-                                        className={`flex-1 py-2 text-[9px] uppercase tracking-widest font-bold border rounded-sm transition-all ${
-                                          o.status === s 
-                                            ? 'bg-[#2C2C2C] text-white border-[#2C2C2C] shadow-md' 
-                                            : 'border-[#D1D1D1] bg-white text-[#666] hover:border-[#8B735B] hover:text-[#8B735B]'
-                                        }`}
-                                      >
-                                        {s} {o.status === s && '✓'}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div className="pt-4 border-t border-[#E5E5E5] flex items-center justify-between">
-                                  <div>
-                                    <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-1">Contact</p>
-                                    <p className="text-xs font-medium">{o.customerPhone}</p>
-                                  </div>
-                                  <a href={`https://wa.me/${o.customerPhone?.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(o.customerName)}!%20I'm%20${encodeURIComponent(artisan.brandName || artisan.name)}%20from%20Kala%20Prayag.%20I'm%20preparing%20your%20order%20(${o.id}).`}
-                                    target="_blank" rel="noreferrer"
-                                    className="flex items-center justify-center gap-2 px-5 py-2 border border-[#D1D1D1] text-[#2C2C2C] bg-white hover:bg-[#25D366] hover:border-[#25D366] hover:text-white text-[9px] uppercase tracking-widest font-bold rounded-sm transition-all"
-                                  >
-                                    WhatsApp
-                                  </a>
+                                <div className="flex items-center gap-2 justify-end">
+                                  <svg className={`w-4 h-4 text-[#BBB] transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                                 </div>
                               </div>
-
-                              <button 
-                                onClick={() => toggleOrderExpansion(o.id)}
-                                className="w-full py-4 border-t border-[#E5E5E5] text-[10px] uppercase tracking-widest font-bold text-[#666] hover:bg-gray-100 flex items-center justify-center gap-2 transition-all mt-auto"
-                              >
-                                Hide Details
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 15l7-7 7 7" /></svg>
-                              </button>
+                              {/* Expanded detail panel */}
+                              {isExpanded && (
+                                <div className="px-5 pb-5 bg-[#FAF9F6] border-t border-[#F0F0F0] animate-in slide-in-from-top-2 duration-200">
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                                    {/* Left: order details */}
+                                    <div className="md:col-span-2 space-y-4">
+                                      <div>
+                                        <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold mb-1">Vision / Concept</p>
+                                        <p className="text-sm text-[#444] leading-relaxed italic">"{o.concept}"</p>
+                                      </div>
+                                      <div className="grid grid-cols-3 gap-4">
+                                        <div><p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Size</p><p className="text-sm font-medium text-[#1A1A1A] mt-0.5">{o.size || o.dimensions || '—'}</p></div>
+                                        <div><p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Finish</p><p className="text-sm font-medium text-[#1A1A1A] mt-0.5">{o.finish || '—'}</p></div>
+                                        <div><p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Full Order ID</p><p className="text-[10px] font-mono text-[#555] mt-0.5 break-all">{o.id}</p></div>
+                                      </div>
+                                      <div className="pt-2 border-t border-[#EBEBEB]">
+                                        <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold mb-1">Contact</p>
+                                        <p className="text-xs text-[#444]">{o.email} · {o.phone}</p>
+                                      </div>
+                                      {o.adminNote && (
+                                        <div className="bg-amber-50 border border-amber-100 rounded-md p-3">
+                                          <p className="text-[9px] uppercase tracking-widest text-amber-700 font-bold mb-1">Admin Note</p>
+                                          <p className="text-xs text-amber-900">{o.adminNote}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                    {/* Right: actions */}
+                                    <div className="space-y-3">
+                                      {o.artisanStatus === 'waiting' && (
+                                        <>
+                                          <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Note to Customer</p>
+                                          <textarea
+                                            rows={3}
+                                            placeholder="e.g. I can start next week..."
+                                            className="w-full border border-[#D1D1D1] p-2.5 text-xs focus:outline-none focus:border-[#2C2C2C] resize-none rounded-md"
+                                            value={artisanNotes[o.id] || ''}
+                                            onChange={e => setArtisanNotes(prev => ({ ...prev, [o.id]: e.target.value }))}
+                                          />
+                                          <button
+                                            onClick={e => { e.stopPropagation(); onAcceptOrder(o.id, artisanNotes[o.id] || ''); }}
+                                            className="w-full bg-[#1A1A1A] text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-[#8B735B] transition-all rounded-md"
+                                          >
+                                            Accept Commission
+                                          </button>
+                                        </>
+                                      )}
+                                      {o.artisanStatus === 'accepted' && (
+                                        <div className="space-y-2">
+                                          <button
+                                            onClick={e => { e.stopPropagation(); onUpdateCustomOrder?.({ ...o, artisanStatus: 'completed', status: 'completed', acceptedAt: o.acceptedAt || new Date().toISOString() }); }}
+                                            className="w-full bg-[#1A1A1A] text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-green-700 transition-all rounded-md"
+                                          >
+                                            Mark as Completed ✓
+                                          </button>
+                                          <a
+                                            href={`https://wa.me/${o.phone?.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(o.customerName)}!`}
+                                            target="_blank" rel="noreferrer"
+                                            className="flex items-center justify-center gap-2 w-full border border-[#D1D1D1] bg-white text-[#1A1A1A] hover:bg-[#25D366] hover:border-[#25D366] hover:text-white py-2.5 text-[10px] uppercase tracking-widest font-bold rounded-md transition-all"
+                                          >
+                                            WhatsApp
+                                          </a>
+                                        </div>
+                                      )}
+                                      {o.artisanStatus === 'completed' && (
+                                        <div className="text-center py-4">
+                                          <span className="text-2xl">✅</span>
+                                          <p className="text-xs text-[#999] mt-1">Commission Completed</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
-      {/* REVIEWS TAB */}
+            {/* ── Masterpiece Sales Table ── */}
+            {(orderTypeFilter === 'all' || orderTypeFilter === 'shop') && (
+              <div className={`space-y-2 ${orderTypeFilter === 'all' ? 'mt-8' : ''}`}>
+                {orderTypeFilter === 'all' && <h3 className="text-xs uppercase tracking-[0.2em] font-bold text-[#8B735B] mb-3">Masterpiece Sales</h3>}
+                {myProductOrders.length === 0 ? (
+                  <div className="py-20 text-center bg-white border border-[#E5E5E5] rounded-lg">
+                    <p className="text-3xl mb-2">🏺</p>
+                    <p className="text-sm font-medium text-[#555]">No shop orders yet</p>
+                    <p className="text-xs text-[#BBB] mt-1">Sales from your listed artwork will appear here.</p>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-[#E5E5E5] rounded-lg overflow-hidden shadow-sm">
+                    {/* Table header */}
+                    <div className="grid grid-cols-[2fr_1.5fr_2fr_1.5fr_1.2fr_1.2fr_1fr] gap-0 px-5 py-3 border-b border-[#F0F0F0] bg-[#FAFAFA]">
+                      {['Order ID', 'Date', 'Customer', 'Items', 'Subtotal', 'Status', 'Action'].map(h => (
+                        <p key={h} className="text-[9px] uppercase tracking-widest text-[#AAA] font-bold">{h}</p>
+                      ))}
+                    </div>
+                    {/* Grouped rows */}
+                    {groupByMonth(myProductOrders).map(([monthYear, orders]) => (
+                      <div key={monthYear}>
+                        <div className="px-5 py-2 bg-[#F9F8F6] border-y border-[#EFEFEF]">
+                          <span className="text-[9px] uppercase tracking-[0.25em] font-bold text-[#8B735B]">{monthYear}</span>
+                        </div>
+                        {orders.map(o => {
+                          const isExpanded = !!expandedOrders[o.id];
+                          const statusStyle = shopStatusStyle(o.status);
+                          const myItems = o.items.filter(item => {
+                            const product = products.find(p => p.id === item.productId);
+                            return product?.artisanId === artisan.id;
+                          });
+                          const mySubtotal = myItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                          return (
+                            <div key={o.id} className={`border-b border-[#F5F5F5] last:border-b-0 transition-colors ${isExpanded ? 'bg-[#FDFCFB]' : 'hover:bg-[#FCFCFC]'}`}>
+                              {/* Row */}
+                              <div
+                                className="grid grid-cols-[2fr_1.5fr_2fr_1.5fr_1.2fr_1.2fr_1fr] gap-0 px-5 py-3.5 cursor-pointer items-center"
+                                onClick={() => toggleOrderExpansion(o.id)}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {o.status === 'pending' && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />}
+                                  <p className="text-xs font-mono text-[#555] truncate">#{o.id.slice(-8)}</p>
+                                </div>
+                                <p className="text-xs text-[#666]">{fmtDate(o.createdAt)}</p>
+                                <p className="text-xs font-semibold text-[#1A1A1A] truncate pr-2">{o.customerName}</p>
+                                <p className="text-xs text-[#666]">{myItems.length} item{myItems.length !== 1 ? 's' : ''}</p>
+                                <p className="text-xs font-bold text-[#8B735B]">₹{mySubtotal.toLocaleString()}</p>
+                                <div>
+                                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold border ${statusStyle}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${dotColor(statusStyle)}`} />
+                                    {o.status}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 justify-end">
+                                  <svg className={`w-4 h-4 text-[#BBB] transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                              </div>
+                              {/* Expanded panel */}
+                              {isExpanded && (
+                                <div className="px-5 pb-5 bg-[#FAF9F6] border-t border-[#F0F0F0] animate-in slide-in-from-top-2 duration-200">
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                                    <div className="md:col-span-2 space-y-4">
+                                      {/* Item list */}
+                                      <div>
+                                        <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold mb-2">Products</p>
+                                        <div className="space-y-2">
+                                          {myItems.map((item, i) => (
+                                            <div key={i} className="flex items-center gap-3 bg-white border border-[#EBEBEB] rounded-md p-2.5">
+                                              <img src={item.image} className="w-10 h-10 object-cover rounded border border-[#E5E5E5] flex-shrink-0" alt="" />
+                                              <div className="flex-grow min-w-0">
+                                                <p className="text-xs font-semibold text-[#1A1A1A] truncate">{item.name}</p>
+                                                <p className="text-[9px] text-[#888] mt-0.5">Qty: {item.quantity}</p>
+                                              </div>
+                                              <p className="text-xs font-bold text-[#8B735B] flex-shrink-0">₹{(item.price * item.quantity).toLocaleString()}</p>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      {/* Shipping */}
+                                      <div className="pt-2 border-t border-[#EBEBEB]">
+                                        <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold mb-1">Shipping Address</p>
+                                        <p className="text-xs text-[#444]">{o.shippingAddress}, {o.city} — {o.pincode}</p>
+                                      </div>
+                                    </div>
+                                    {/* Actions */}
+                                    <div className="space-y-3">
+                                      <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Update Status</p>
+                                      <div className="flex flex-col gap-2">
+                                        {(['confirmed','shipped','delivered'] as const).map(s => (
+                                          <button
+                                            key={s}
+                                            onClick={e => { e.stopPropagation(); onUpdateProductOrder?.({ ...o, status: s }); }}
+                                            className={`py-2.5 text-[9px] uppercase tracking-widest font-bold border rounded-md transition-all ${
+                                              o.status === s
+                                                ? 'bg-[#1A1A1A] text-white border-[#1A1A1A] shadow-sm'
+                                                : 'border-[#D1D1D1] bg-white text-[#666] hover:border-[#8B735B] hover:text-[#8B735B]'
+                                            }`}
+                                          >
+                                            {s} {o.status === s && '✓'}
+                                          </button>
+                                        ))}
+                                      </div>
+                                      <a
+                                        href={`https://wa.me/${o.customerPhone?.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(o.customerName)}!`}
+                                        target="_blank" rel="noreferrer"
+                                        className="flex items-center justify-center gap-2 w-full border border-[#D1D1D1] bg-white text-[#333] hover:bg-[#25D366] hover:border-[#25D366] hover:text-white py-2.5 text-[10px] uppercase tracking-widest font-bold rounded-md transition-all mt-1"
+                                      >
+                                        WhatsApp Customer
+                                      </a>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+          </div>
+        );
+      })()}
+
+
+
+
       {activeTab === 'reviews' && (
         <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
           <h2 className="text-xl font-medium">Collector Reviews ({myReviews.length})</h2>
