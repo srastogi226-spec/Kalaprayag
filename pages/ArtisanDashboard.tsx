@@ -760,136 +760,150 @@ const ArtisanDashboard: React.FC<ArtisanDashboardProps> = ({
 
           {/* Custom Orders Section */}
           {(orderTypeFilter === 'all' || orderTypeFilter === 'custom') && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium border-b border-[#F0F0F0] pb-2">Custom Orders</h3>
+            <div className={`space-y-6 ${orderTypeFilter === 'all' ? 'mb-16' : ''}`}>
+              <h3 className="text-xl serif italic border-b border-[#E5E5E5] pb-3 text-[#2C2C2C]">Custom Commissions</h3>
               {myOrders.length === 0 ? (
-                <div className="py-16 text-center text-[#999]">
-                  <p className="serif text-xl italic">No custom orders found.</p>
+                <div className="py-20 text-center bg-white border border-[#E5E5E5]">
+                  <p className="serif text-2xl italic text-[#999]">No custom commissions found.</p>
+                  <p className="text-sm text-[#BBB] mt-2">When collectors request bespoke pieces, they will appear here.</p>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                   {[...myOrders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(o => {
                     const isExpanded = !!expandedOrders[o.id];
                     return (
-                      <div key={o.id} className={`bg-white border transition-all duration-300 overflow-hidden ${isExpanded ? 'ring-1 ring-[#8B735B] shadow-md mb-4' : 'hover:border-[#8B735B]/50'} ${o.artisanStatus === 'waiting' ? 'animate-bg-flash border-amber-200' : ''}`}>
-                        {/* Condensed Header */}
-                        <div
-                          onClick={() => toggleOrderExpansion(o.id)}
-                          className={`p-4 cursor-pointer flex items-center justify-between transition-colors ${isExpanded ? 'bg-[#FAF9F6]' : 'hover:bg-gray-50'}`}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className={`w-2 h-2 rounded-full ${o.artisanStatus === 'waiting' ? 'bg-amber-500 animate-pulse' : o.artisanStatus === 'accepted' ? 'bg-blue-500' : 'bg-green-500'}`} />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">{o.id}</p>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(o.id); alert('ID Copied!'); }}
-                                  className="text-[#BBB] hover:text-[#8B735B] transition-colors"
-                                >
-                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
-                                </button>
-                              </div>
-                              <h4 className="text-sm font-medium">{o.customerName}</h4>
+                      <div key={o.id} className={`bg-white border transition-all duration-300 flex flex-col ${isExpanded ? 'ring-1 ring-[#8B735B] shadow-lg scale-[1.01]' : 'shadow-sm hover:shadow-md hover:border-[#8B735B]/40'} ${o.artisanStatus === 'waiting' ? 'border-amber-300 bg-amber-50/10' : 'border-[#E5E5E5]'}`}>
+                        
+                        {/* --- Card Header --- */}
+                        <div className="p-6 pb-4 border-b border-gray-50 flex justify-between items-start">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              {o.artisanStatus === 'waiting' && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>}
+                              {o.artisanStatus === 'accepted' && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                              {o.artisanStatus === 'completed' && <span className="w-2 h-2 rounded-full bg-green-500"></span>}
+                              <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">{o.id}</p>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(o.id); alert('ID Copied!'); }}
+                                className="text-[#BBB] hover:text-[#8B735B] transition-colors"
+                              >
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
+                              </button>
                             </div>
+                            <h4 className="text-xl serif">{o.customerName}</h4>
                           </div>
-                          <div className="flex items-center gap-6">
-                            <div className="text-right hidden sm:block">
-                              <p className="text-[9px] uppercase tracking-widest text-[#999]">Status</p>
-                              <p className={`text-[10px] font-bold uppercase ${o.artisanStatus === 'waiting' ? 'text-amber-600' : o.artisanStatus === 'completed' ? 'text-green-600' : 'text-[#8B735B]'}`}>{o.artisanStatus}</p>
-                            </div>
-                            <button className={`text-[#999] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>
-                            </button>
+                          
+                          <div className={`px-3 py-1 text-[9px] uppercase tracking-widest font-bold border rounded-full
+                            ${o.artisanStatus === 'waiting' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
+                              o.artisanStatus === 'completed' ? 'bg-green-50 text-green-700 border-green-200' : 
+                              'bg-blue-50 text-blue-700 border-blue-200'}
+                          `}>
+                            {o.artisanStatus}
                           </div>
                         </div>
 
-                        {/* Expandable Details */}
-                        {isExpanded && (
-                          <div className="p-6 border-t border-[#F0F0F0] bg-white animate-in slide-in-from-top-2 duration-300">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                              <div className="md:col-span-2 space-y-6">
-                                <div className="bg-[#FAF9F6] p-4 border border-[#F0F0F0]">
-                                  <p className="text-[10px] uppercase tracking-widest text-[#999] mb-2 font-bold">Concept / Vision</p>
-                                  <p className="text-sm font-light text-[#4A4A4A] leading-relaxed italic">"{o.concept}"</p>
+                        {/* --- Card Body --- */}
+                        <div className="p-6 flex-grow space-y-5">
+                          <div>
+                            <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-1">Vision</p>
+                            <p className="text-sm text-[#4A4A4A] leading-relaxed italic line-clamp-3">"{o.concept}"</p>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 pt-2">
+                            <div>
+                              <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">Category</p>
+                              <p className="text-sm font-medium mt-0.5">{o.category}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">Advance</p>
+                              <p className="text-sm font-bold text-[#8B735B] mt-0.5">₹ {o.advancePayment?.amount?.toLocaleString()}</p>
+                            </div>
+                          </div>
+
+                          {o.adminNote && (
+                            <div className="bg-amber-50/50 p-3 border border-amber-100 rounded-sm">
+                              <p className="text-[9px] uppercase tracking-widest text-amber-800 font-bold mb-1 flex items-center gap-1.5">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                Admin Note
+                              </p>
+                              <p className="text-xs text-amber-900">{o.adminNote}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* --- Card Footer & Actions --- */}
+                        <div className="mt-auto">
+                          {!isExpanded ? (
+                            <button 
+                              onClick={() => toggleOrderExpansion(o.id)}
+                              className="w-full py-4 border-t border-gray-100 text-[10px] uppercase tracking-widest font-bold text-[#666] hover:text-[#2C2C2C] hover:bg-gray-50 flex items-center justify-center gap-2 transition-all"
+                            >
+                              View Full Details 
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>
+                            </button>
+                          ) : (
+                            <div className="border-t border-[#F0F0F0] bg-[#FAF9F6] animate-in slide-in-from-top-4 duration-300 flex flex-col h-full">
+                              
+                              <div className="p-6 space-y-6 flex-grow">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div><p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">Size / Dims</p><p className="text-sm font-medium mt-1">{o.size || o.dimensions}</p></div>
+                                  <div><p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">Finish</p><p className="text-sm font-medium mt-1">{o.finish}</p></div>
                                 </div>
-
-                                {o.adminNote && (
-                                  <div className="bg-amber-50/50 p-4 border border-amber-100 flex gap-3">
-                                    <svg className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                    <div>
-                                      <p className="text-[10px] uppercase tracking-widest text-amber-800 font-bold mb-1">Admin Remark</p>
-                                      <p className="text-xs text-amber-900 leading-relaxed">{o.adminNote}</p>
-                                    </div>
-                                  </div>
-                                )}
-
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                  <div><span className="text-[9px] uppercase tracking-widest text-[#999]">Category</span><p className="text-xs font-medium mt-1">{o.category}</p></div>
-                                  <div><span className="text-[9px] uppercase tracking-widest text-[#999]">Size</span><p className="text-xs font-medium mt-1">{o.size || o.dimensions}</p></div>
-                                  <div><span className="text-[9px] uppercase tracking-widest text-[#999]">Finish</span><p className="text-xs font-medium mt-1">{o.finish}</p></div>
-                                  <div><span className="text-[9px] uppercase tracking-widest text-[#999]">Advance Paid</span><p className="text-xs font-bold text-[#8B735B] mt-1">₹ {o.advancePayment?.amount?.toLocaleString()}</p></div>
-                                </div>
-
-                                <div className="pt-4 border-t border-gray-50 flex justify-between items-end">
-                                  <div>
-                                    <p className="text-[10px] uppercase tracking-widest text-[#999]">Contact Info</p>
-                                    <p className="text-xs font-medium mt-1">{o.email} • {o.phone}</p>
-                                  </div>
-                                  <p className="text-[10px] text-[#BBB]">Placed on {new Date(o.createdAt).toLocaleString()}</p>
+                                
+                                <div className="pt-4 border-t border-[#E5E5E5]">
+                                  <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-2">Customer Details</p>
+                                  <p className="text-sm">{o.email}</p>
+                                  <p className="text-sm">{o.phone}</p>
                                 </div>
                               </div>
 
-                              <div className="space-y-4">
+                              {/* Actions Block */}
+                              <div className="p-6 pt-0 mt-auto">
                                 {o.artisanStatus === 'waiting' && (
-                                  <div className="space-y-4">
-                                    <div className="bg-amber-50 p-4 border border-amber-100">
-                                      <p className="text-[10px] text-amber-800 leading-relaxed font-medium">Ready to take this on? Add a quick note to the customer below.</p>
-                                    </div>
+                                  <div className="space-y-3">
                                     <textarea
-                                      rows={3}
-                                      placeholder="e.g. I can start working on this next week..."
-                                      className="w-full border border-[#E5E5E5] p-3 text-sm focus:outline-none focus:border-[#2C2C2C] resize-none"
+                                      rows={2}
+                                      placeholder="Note to customer (e.g. I can start next week)..."
+                                      className="w-full border border-[#D1D1D1] p-3 text-sm focus:outline-none focus:border-[#2C2C2C] resize-none rounded-sm"
                                       value={artisanNotes[o.id] || ''}
                                       onChange={e => setArtisanNotes(prev => ({ ...prev, [o.id]: e.target.value }))}
                                     />
                                     <button
                                       onClick={(e) => { e.stopPropagation(); onAcceptOrder(o.id, artisanNotes[o.id] || ''); }}
-                                      className="w-full bg-[#2C2C2C] text-white py-3 text-[11px] uppercase tracking-widest font-bold hover:bg-[#8B735B] transition-all"
+                                      className="w-full bg-[#2C2C2C] text-white py-3.5 text-[11px] uppercase tracking-widest font-bold hover:bg-[#8B735B] transition-all rounded-sm shadow-md"
                                     >
-                                      Accept Order ✓
+                                      Accept Commission
                                     </button>
                                   </div>
                                 )}
+                                
                                 {o.artisanStatus === 'accepted' && (
-                                  <div className="space-y-3">
-                                    <div className="bg-blue-50 border border-blue-100 p-4 text-center">
-                                      <p className="text-sm font-semibold text-blue-700">In Progress</p>
-                                      <p className="text-[10px] text-blue-600 mt-1 uppercase tracking-widest">Commision Started</p>
-                                    </div>
+                                  <div className="flex flex-col gap-3">
                                     <button
                                       onClick={(e) => { e.stopPropagation(); onUpdateCustomOrder?.({ ...o, artisanStatus: 'completed', status: 'completed', acceptedAt: o.acceptedAt || new Date().toISOString() }); }}
-                                      className="w-full bg-[#8B735B] text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-[#2C2C2C] transition-all"
+                                      className="w-full bg-[#2C2C2C] text-white py-3.5 text-[10px] uppercase tracking-widest font-bold hover:bg-[#8B735B] transition-all rounded-sm shadow-md"
                                     >
                                       Mark as Completed ✓
                                     </button>
                                     <a href={`https://wa.me/${o.phone?.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(o.customerName)}!%20I'm%20${encodeURIComponent(artisan.brandName || artisan.name)}%20from%20Kala%20Prayag.%20I'm%20calling%20about%20your%20custom%20order%20(${o.id}).%20Let's%20discuss%20the%20progress!`}
                                       target="_blank" rel="noreferrer"
-                                      className="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white py-2.5 text-[10px] uppercase tracking-widest font-bold hover:opacity-90 transition-all"
+                                      className="flex items-center justify-center gap-2 w-full border border-[#D1D1D1] text-[#2C2C2C] hover:bg-[#25D366] hover:border-[#25D366] hover:text-white py-3 text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm"
                                     >
                                       WhatsApp Customer
                                     </a>
                                   </div>
                                 )}
-                                {o.artisanStatus === 'completed' && (
-                                  <div className="bg-green-50 border border-green-200 p-4 text-center">
-                                    <p className="text-sm font-semibold text-green-700 font-serif italic">Masterpiece Delivered</p>
-                                    <p className="text-[9px] uppercase tracking-widest text-green-600 mt-1">Order Fully Completed</p>
-                                  </div>
-                                )}
                               </div>
+
+                              <button 
+                                onClick={() => toggleOrderExpansion(o.id)}
+                                className="w-full py-4 border-t border-[#E5E5E5] text-[10px] uppercase tracking-widest font-bold text-[#666] hover:bg-gray-100 flex items-center justify-center gap-2 transition-all mt-auto"
+                              >
+                                Hide Details
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 15l7-7 7 7" /></svg>
+                              </button>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -900,14 +914,15 @@ const ArtisanDashboard: React.FC<ArtisanDashboardProps> = ({
 
           {/* Shop Orders Section */}
           {(orderTypeFilter === 'all' || orderTypeFilter === 'shop') && (
-            <div className={`space-y-6 ${orderTypeFilter === 'all' ? 'pt-16 border-t border-gray-100 mt-16' : ''}`}>
-              <h3 className="text-lg font-medium border-b border-[#F0F0F0] pb-2">Masterpiece Sales</h3>
+            <div className={`space-y-6 ${orderTypeFilter === 'all' ? 'pt-12 border-t border-gray-100 mt-12' : ''}`}>
+              <h3 className="text-xl serif italic border-b border-[#E5E5E5] pb-3 text-[#2C2C2C]">Masterpiece Sales</h3>
               {myProductOrders.length === 0 ? (
-                <div className="py-16 text-center text-[#999]">
-                  <p className="serif text-xl italic">No shop orders yet.</p>
+                <div className="py-20 text-center bg-white border border-[#E5E5E5]">
+                  <p className="serif text-2xl italic text-[#999]">No shop orders yet.</p>
+                  <p className="text-sm text-[#BBB] mt-2">Sales from your listed artwork will appear here.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                   {[...myProductOrders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(o => {
                     const isExpanded = !!expandedOrders[o.id];
                     // Filter items to only show what belongs to THIS artisan if it's a multi-artisan order
@@ -918,112 +933,128 @@ const ArtisanDashboard: React.FC<ArtisanDashboardProps> = ({
                     const mySubtotal = myItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
                     return (
-                      <div key={o.id} className={`bg-white border transition-all duration-300 overflow-hidden ${isExpanded ? 'ring-1 ring-[#8B735B] shadow-md mb-2' : 'hover:border-[#8B735B]/50'} ${o.status === 'pending' ? 'animate-bg-flash border-amber-200 shadow-[inset_0_0_20px_rgba(251,191,36,0.05)]' : ''}`}>
-                        {/* Condensed Header */}
-                        <div
-                          onClick={() => toggleOrderExpansion(o.id)}
-                          className={`p-4 cursor-pointer flex items-center justify-between transition-colors ${isExpanded ? 'bg-[#FAF9F6]' : 'hover:bg-gray-50'}`}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className={`w-2 h-2 rounded-full ${o.status === 'pending' ? 'bg-amber-500 animate-status-flash' : o.status === 'delivered' ? 'bg-green-500' : 'bg-blue-500'}`} />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">{o.id}</p>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(o.id); alert('ID Copied!'); }}
-                                  className="text-[#BBB] hover:text-[#8B735B] transition-colors"
-                                >
-                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
-                                </button>
-                              </div>
-                              <h4 className="text-sm font-medium">{o.customerName}</h4>
+                      <div key={o.id} className={`bg-white border transition-all duration-300 flex flex-col ${isExpanded ? 'ring-1 ring-[#8B735B] shadow-lg scale-[1.01]' : 'shadow-sm hover:shadow-md hover:border-[#8B735B]/40'} ${o.status === 'pending' ? 'border-amber-300 bg-amber-50/10' : 'border-[#E5E5E5]'}`}>
+                        
+                        {/* --- Card Header --- */}
+                        <div className="p-6 pb-4 border-b border-gray-50 flex justify-between items-start">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              {o.status === 'pending' && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>}
+                              {o.status === 'delivered' && <span className="w-2 h-2 rounded-full bg-green-500"></span>}
+                              {(o.status === 'confirmed' || o.status === 'shipped') && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                              <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">{o.id}</p>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(o.id); alert('ID Copied!'); }}
+                                className="text-[#BBB] hover:text-[#8B735B] transition-colors"
+                              >
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
+                              </button>
                             </div>
+                            <h4 className="text-xl serif">{o.customerName}</h4>
                           </div>
-                          <div className="flex items-center gap-8">
-                            <div className="text-right hidden sm:block">
-                              <p className="text-[9px] uppercase tracking-widest text-[#999]">My Subtotal</p>
-                              <p className="text-sm font-bold text-[#2C2C2C]">₹ {mySubtotal.toLocaleString()}</p>
-                            </div>
-                            <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded font-bold border transition-all ${o.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200 animate-status-flash shadow-[0_0_10px_rgba(251,191,36,0.2)]' :
+                          
+                          <div className={`px-3 py-1 text-[9px] uppercase tracking-widest font-bold border rounded-full
+                            ${o.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.2)]' :
                               o.status === 'confirmed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                o.status === 'shipped' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
-                                  o.status === 'delivered' ? 'bg-green-50 text-green-700 border-green-200' :
-                                    'bg-red-50 text-red-700 border-red-200'
-                              }`}>{o.status}</span>
-                            <button className={`text-[#999] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>
-                            </button>
+                              o.status === 'shipped' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                              o.status === 'delivered' ? 'bg-green-50 text-green-700 border-green-200' :
+                              'bg-red-50 text-red-700 border-red-200'}
+                          `}>
+                            {o.status}
                           </div>
                         </div>
 
-                        {/* Expandable Details */}
-                        {isExpanded && (
-                          <div className="p-6 border-t border-[#F0F0F0] bg-white animate-in slide-in-from-top-2 duration-300">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                              <div>
-                                <p className="text-[10px] uppercase tracking-widest text-[#999] mb-3 font-bold">My Products in this Order</p>
-                                <div className="space-y-3">
-                                  {myItems.map((item, i) => (
-                                    <div key={i} className="flex items-center gap-4 py-3 border-b border-gray-50 last:border-0">
-                                      <img src={item.image} className="w-12 h-12 object-cover rounded" alt="" />
-                                      <div className="flex-grow">
-                                        <p className="text-sm font-medium">{item.name}</p>
-                                        <p className="text-[10px] text-[#999]">Qty: {item.quantity} · {item.size} · {item.finish}</p>
-                                      </div>
-                                      <p className="text-sm font-bold text-[#2C2C2C]">₹ {(item.price * item.quantity).toLocaleString()}</p>
-                                    </div>
-                                  ))}
-                                  {myItems.length < o.items.length && (
-                                    <p className="text-[9px] text-[#BBB] italic mt-2">+ Items from other artisans in this transaction.</p>
-                                  )}
+                        {/* --- Card Body --- */}
+                        <div className="p-6 flex-grow">
+                          <div className="flex justify-between items-end mb-4">
+                            <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">My Subtotal</p>
+                            <p className="text-xl font-bold text-[#2C2C2C]">₹ {mySubtotal.toLocaleString()}</p>
+                          </div>
+
+                          <div className="space-y-3">
+                            <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold border-b border-gray-50 pb-2">Products</p>
+                            {myItems.map((item, i) => (
+                              <div key={i} className="flex items-center gap-3">
+                                <img src={item.image} className="w-10 h-10 object-cover rounded shadow-sm border border-[#E5E5E5]" alt="" />
+                                <div className="flex-grow">
+                                  <p className="text-xs font-semibold text-[#2C2C2C] truncate pr-2 leading-tight">{item.name}</p>
+                                  <p className="text-[9px] text-[#888] mt-0.5 uppercase tracking-wide">Qty: {item.quantity}</p>
+                                </div>
+                                <p className="text-xs font-bold text-[#8B735B]">₹{(item.price * item.quantity).toLocaleString()}</p>
+                              </div>
+                            ))}
+                            {myItems.length < o.items.length && (
+                              <p className="text-[9px] text-[#BBB] italic mt-2 bg-gray-50 p-2 rounded-sm border border-gray-100">+ Includes other items.</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* --- Card Footer & Actions --- */}
+                        <div className="mt-auto">
+                          {!isExpanded ? (
+                            <button 
+                              onClick={() => toggleOrderExpansion(o.id)}
+                              className="w-full py-4 border-t border-gray-100 text-[10px] uppercase tracking-widest font-bold text-[#666] hover:text-[#2C2C2C] hover:bg-gray-50 flex items-center justify-center gap-2 transition-all"
+                            >
+                              Fulfillment Details 
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>
+                            </button>
+                          ) : (
+                            <div className="border-t border-[#F0F0F0] bg-[#FAF9F6] animate-in slide-in-from-top-4 duration-300 flex flex-col h-full">
+                              
+                              <div className="p-6 space-y-6 flex-grow">
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-2">Shipping Details</p>
+                                  <div className="bg-white p-4 border border-[#F0F0F0] rounded-sm shadow-sm space-y-1">
+                                    <p className="text-xs font-semibold">{o.customerName}</p>
+                                    <p className="text-[10px] text-[#666] leading-relaxed">{o.shippingAddress}</p>
+                                    <p className="text-[10px] font-medium text-[#2C2C2C] pt-1">{o.city} — {o.pincode}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="pt-4 border-t border-[#E5E5E5]">
+                                  <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-2">Update Status</p>
+                                  <div className="flex gap-2">
+                                    {['confirmed', 'shipped', 'delivered'].map((s) => (
+                                      <button
+                                        key={s}
+                                        onClick={(e) => { e.stopPropagation(); onUpdateProductOrder?.({ ...o, status: s as any }); }}
+                                        className={`flex-1 py-2 text-[9px] uppercase tracking-widest font-bold border rounded-sm transition-all ${
+                                          o.status === s 
+                                            ? 'bg-[#2C2C2C] text-white border-[#2C2C2C] shadow-md' 
+                                            : 'border-[#D1D1D1] bg-white text-[#666] hover:border-[#8B735B] hover:text-[#8B735B]'
+                                        }`}
+                                      >
+                                        {s} {o.status === s && '✓'}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-[#E5E5E5] flex items-center justify-between">
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-1">Contact</p>
+                                    <p className="text-xs font-medium">{o.customerPhone}</p>
+                                  </div>
+                                  <a href={`https://wa.me/${o.customerPhone?.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(o.customerName)}!%20I'm%20${encodeURIComponent(artisan.brandName || artisan.name)}%20from%20Kala%20Prayag.%20I'm%20preparing%20your%20order%20(${o.id}).`}
+                                    target="_blank" rel="noreferrer"
+                                    className="flex items-center justify-center gap-2 px-5 py-2 border border-[#D1D1D1] text-[#2C2C2C] bg-white hover:bg-[#25D366] hover:border-[#25D366] hover:text-white text-[9px] uppercase tracking-widest font-bold rounded-sm transition-all"
+                                  >
+                                    WhatsApp
+                                  </a>
                                 </div>
                               </div>
 
-                              <div className="space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-[10px] uppercase tracking-widest text-[#999] mb-2 font-bold">Shipping Details</p>
-                                    <div className="bg-[#FAF9F6] p-4 border border-[#F0F0F0] space-y-1">
-                                      <p className="text-xs font-medium">{o.customerName}</p>
-                                      <p className="text-[10px] text-[#666] leading-relaxed">{o.shippingAddress}</p>
-                                      <p className="text-[10px] text-[#666]">{o.city} — {o.pincode}</p>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] uppercase tracking-widest text-[#999] mb-2 font-bold">Fulfillment Status</p>
-                                    <div className="space-y-2">
-                                      {['confirmed', 'shipped', 'delivered'].map((s) => (
-                                        <button
-                                          key={s}
-                                          onClick={(e) => { e.stopPropagation(); onUpdateProductOrder?.({ ...o, status: s as any }); }}
-                                          className={`w-full py-1.5 text-[9px] uppercase tracking-widest font-bold border transition-all ${o.status === s ? 'bg-[#2C2C2C] text-white border-[#2C2C2C]' : 'border-[#E5E5E5] text-[#999] hover:border-[#2C2C2C] hover:text-[#2C2C2C]'}`}
-                                        >
-                                          {s} {o.status === s && '✓'}
-                                        </button>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="pt-4 border-t border-gray-50">
-                                  <p className="text-[10px] uppercase tracking-widest text-[#999] mb-2 font-bold">Contact Customer</p>
-                                  <div className="flex items-center justify-between">
-                                    <div>
-                                      <p className="text-xs font-medium">{o.customerEmail}</p>
-                                      <p className="text-xs text-[#666]">{o.customerPhone}</p>
-                                    </div>
-                                    <a href={`https://wa.me/${o.customerPhone?.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(o.customerName)}!%20I'm%20${encodeURIComponent(artisan.brandName || artisan.name)}%20from%20Kala%20Prayag.%20I'm%20preparing%20your%20order%20(${o.id}).`}
-                                      target="_blank" rel="noreferrer"
-                                      className="flex items-center justify-center gap-2 px-4 py-2 bg-[#25D366] text-white text-[9px] uppercase tracking-widest font-bold hover:opacity-90 transition-all"
-                                    >
-                                      WhatsApp
-                                    </a>
-                                  </div>
-                                </div>
-                                <p className="text-[9px] text-[#BBB] mt-2 text-right italic">Order created on {new Date(o.createdAt).toLocaleString()}</p>
-                              </div>
+                              <button 
+                                onClick={() => toggleOrderExpansion(o.id)}
+                                className="w-full py-4 border-t border-[#E5E5E5] text-[10px] uppercase tracking-widest font-bold text-[#666] hover:bg-gray-100 flex items-center justify-center gap-2 transition-all mt-auto"
+                              >
+                                Hide Details
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 15l7-7 7 7" /></svg>
+                              </button>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     );
                   })}
