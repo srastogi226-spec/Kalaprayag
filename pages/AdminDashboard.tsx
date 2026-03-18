@@ -388,394 +388,641 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
 
 
-      {/* Order type filter */}
-      {activeTab === 'orders' && (
-        <div className="flex justify-end mb-6 relative">
-          <button
-            onClick={() => setShowOrderDropdown(!showOrderDropdown)}
-            className="text-[10px] uppercase tracking-widest border border-[#E5E5E5] px-5 py-2 rounded-md flex items-center gap-2 hover:border-[#2C2C2C] transition-all bg-white"
-          >
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
-            {orderTypeFilter === 'All' ? 'All Orders' : orderTypeFilter}
-            <svg className={`w-3 h-3 transition-transform ${showOrderDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-          </button>
-          {showOrderDropdown && (
-            <div className="absolute top-full right-0 mt-1 bg-white border border-[#E5E5E5] shadow-lg rounded-md z-50 min-w-[200px] py-1">
-              {['All', 'Shop Orders', 'Custom Orders'].map(type => {
-                const count = type === 'All' ? productOrders.length + orders.length : type === 'Shop Orders' ? productOrders.length : orders.length;
-                const pendingCount = type === 'All'
-                  ? productOrders.filter(o => o.status === 'pending').length + orders.filter(o => o.status === 'pending').length
-                  : type === 'Shop Orders'
-                    ? productOrders.filter(o => o.status === 'pending').length
-                    : orders.filter(o => o.status === 'pending').length;
+      {/* ORDERS TAB */}
+      {activeTab === 'orders' && (() => {
+        // --- Order Calculations & Filtering ---
+        const pendingOrders = orders.filter(o => o.status === 'pending');
+        const acceptedOrders = orders.filter(o => o.status === 'accepted');
+        const completedOrders = orders.filter(o => o.status === 'completed');
+        
+        const totalPendingProd = productOrders.filter(o => o.status === 'pending').length;
+        const totalDeliveredProd = productOrders.filter(o => o.status === 'delivered').length;
 
-                return (
-                  <button
-                    key={type}
-                    onClick={() => { setOrderTypeFilter(type); setShowOrderDropdown(false); }}
-                    className={`w-full text-left px-4 py-2 text-[11px] uppercase tracking-widest hover:bg-[#F5F5F5] transition-all ${orderTypeFilter === type ? 'text-[#2C2C2C] font-bold bg-[#F5F5F5]' : 'text-[#999]'
-                      }`}
-                  >
-                    {type} {pendingCount > 0 ? `(${pendingCount} New)` : ''}
-                    <span className="text-[#CCC] ml-2">({count})</span>
-                  </button>
-                );
-              })}
+        // Apply Artisan Filter
+        const filteredShopOrders = orderArtisanFilter === 'All' 
+          ? productOrders 
+          : productOrders.filter(o => o.artisanName === orderArtisanFilter);
+
+        const filteredCustomOrders = orderArtisanFilter === 'All'
+          ? orders
+          : orders.filter(o => o.assignedArtisanName === orderArtisanFilter);
+
+        // Advance calculation
+        const advanceAmount = orders.reduce((sum, o) => sum + (o.advancePayment?.amount || 0), 0);
+        const shopAmount = productOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+        const totalActionNeeded = pendingOrders.length + acceptedOrders.length + totalPendingProd;
+
+        return (
+          <div className="space-y-12 animate-in fade-in duration-500">
+            {/* STATS ROW */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              <div className="bg-white p-6 border border-[#E5E5E5] flex flex-col justify-between shadow-sm hover:shadow-md transition-all group">
+                <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-4 group-hover:text-[#8B735B] transition-colors">Total Orders</p>
+                <div>
+                  <p className="text-3xl font-light text-[#2C2C2C]">{orders.length + productOrders.length}</p>
+                  <p className="text-xs text-[#BBB] mt-1">{orders.length} Custom / {productOrders.length} Shop</p>
+                </div>
+              </div>
+              <div className="bg-amber-50/30 p-6 border border-amber-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-all group">
+                <p className="text-[10px] uppercase tracking-widest text-amber-800 font-bold mb-4 flex items-center gap-2 group-hover:text-amber-900 transition-colors">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                  Needs Action
+                </p>
+                <div>
+                  <p className="text-3xl font-light text-amber-900">{totalActionNeeded}</p>
+                  <p className="text-xs text-amber-700/70 mt-1">Pending approval & shipment</p>
+                </div>
+              </div>
+              <div className="bg-white p-6 border border-[#E5E5E5] flex flex-col justify-between shadow-sm hover:shadow-md transition-all group">
+                <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-4 group-hover:text-green-600 transition-colors">Completed</p>
+                <div>
+                  <p className="text-3xl font-light text-[#2C2C2C]">{completedOrders.length + totalDeliveredProd}</p>
+                  <p className="text-xs text-[#BBB] mt-1">Delivered & finalized orders</p>
+                </div>
+              </div>
+              <div className="bg-[#FAF9F6] p-6 border border-[#E5E5E5] flex flex-col justify-between shadow-sm hover:shadow-md transition-all group">
+                <p className="text-[10px] uppercase tracking-widest text-[#8B735B] font-bold mb-4 group-hover:text-[#2C2C2C] transition-colors">Total Revenue</p>
+                <div>
+                  <p className="text-3xl font-light text-[#2C2C2C]">₹ {(advanceAmount + shopAmount).toLocaleString()}</p>
+                  <p className="text-xs text-[#BBB] mt-1">Custom advance + Shop sales</p>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-      )}
-      {activeTab === 'orders' && (
-        <div className="space-y-8">
-          {/* Shop Product Orders */}
-          {(orderTypeFilter === 'All' || orderTypeFilter === 'Shop Orders') && (
-            <>
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-medium">Shop Orders ({productOrders.length})</h2>
-                <div className="flex gap-3 text-[10px] uppercase tracking-widest text-[#999]">
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 bg-amber-400 rounded-full animate-status-flash"></span> Pending: {productOrders.filter(o => o.status === 'pending').length}</span>
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 bg-green-500 rounded-full"></span> Delivered: {productOrders.filter(o => o.status === 'delivered').length}</span>
-                </div>
+
+            {/* FILTERS ROW */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-[#E5E5E5] sticky top-0 bg-[#FAF9F6] z-20 pt-2 -mt-2">
+              
+              {/* Type Filters (Pills) */}
+              <div className="flex gap-2 bg-white p-1 rounded-md border border-[#E5E5E5] shadow-sm">
+                {[
+                  { id: 'All', label: 'All Orders', count: orders.length + productOrders.length, new: totalPendingProd + pendingOrders.length },
+                  { id: 'Custom Orders', label: 'Custom', count: orders.length, new: pendingOrders.length },
+                  { id: 'Shop Orders', label: 'Shop', count: productOrders.length, new: totalPendingProd }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setOrderTypeFilter(tab.id)}
+                    className={`relative px-6 py-2.5 text-[11px] uppercase tracking-widest font-bold rounded-sm transition-all duration-300 flex flex-col items-center justify-center min-w-[120px] ${
+                      orderTypeFilter === tab.id 
+                        ? 'bg-[#2C2C2C] text-white shadow-md' 
+                        : 'text-[#999] hover:bg-gray-50 hover:text-[#2C2C2C]'
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    <span className={`text-[9px] mt-0.5 font-normal ${orderTypeFilter === tab.id ? 'text-gray-300' : 'text-[#BBB]'}`}>
+                      {tab.count} Total
+                    </span>
+                    {tab.new > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] text-white shadow-sm ring-2 ring-white font-bold animate-in zoom-in">
+                        {tab.new}
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
-              {productOrders.length === 0 ? (
-                <p className="text-center py-12 text-[#999] italic serif text-xl">No shop orders yet.</p>
-              ) : (
-                <div className="grid grid-cols-1 gap-4">
-                  {[...productOrders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(o => {
-                    const isExpanded = !!expandedOrders[o.id];
-                    return (
-                      <div key={o.id} className={`bg-white border transition-all duration-300 overflow-hidden ${isExpanded ? 'ring-1 ring-[#8B735B] shadow-md mb-2' : 'hover:border-[#8B735B]/50'} ${o.status === 'pending' ? 'animate-bg-flash border-amber-200 shadow-[inset_0_0_20px_rgba(251,191,36,0.05)]' : ''}`}>
-                        {/* Condensed Header */}
-                        <div
-                          onClick={() => toggleOrderExpansion(o.id)}
-                          className={`p-4 cursor-pointer flex items-center justify-between transition-colors ${isExpanded ? 'bg-[#FAF9F6]' : 'hover:bg-gray-50'}`}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className={`w-2 h-2 rounded-full ${o.status === 'pending' ? 'bg-amber-400 animate-status-flash' : o.status === 'delivered' ? 'bg-green-500' : 'bg-blue-500'}`} />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">{o.id}</p>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(o.id); alert('ID Copied!'); }}
-                                  className="text-[#BBB] hover:text-[#8B735B] transition-colors"
-                                >
-                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
-                                </button>
-                              </div>
-                              <h4 className="text-sm font-medium">{o.customerName}</h4>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-8">
-                            <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded font-bold border transition-all ${o.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200 animate-status-flash shadow-[0_0_10px_rgba(251,191,36,0.2)]' :
-                              o.status === 'confirmed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                o.status === 'shipped' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
-                                  o.status === 'delivered' ? 'bg-green-50 text-green-700 border-green-200' :
-                                    'bg-red-50 text-red-700 border-red-200'
-                              }`}>{o.status}</span>
-                            <button className={`text-[#999] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>
-                            </button>
-                          </div>
+
+              {/* Artisan Filter Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowOrderArtisanDropdown(!showOrderArtisanDropdown)}
+                  className="bg-white border border-[#E5E5E5] px-5 py-3 rounded-md flex items-center gap-3 text-[11px] uppercase tracking-widest font-bold text-[#666] hover:text-[#2C2C2C] hover:border-[#8B735B] transition-all shadow-sm min-w-[220px] justify-between"
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5 text-[#8B735B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    {orderArtisanFilter === 'All' ? 'All Artists' : orderArtisanFilter}
+                  </span>
+                  <svg className={`w-3.5 h-3.5 transition-transform duration-300 ${showOrderArtisanDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                
+                {showOrderArtisanDropdown && (
+                  <div className="absolute top-full right-0 mt-2 bg-white border border-[#E5E5E5] shadow-xl rounded-md z-50 min-w-full py-2 animate-in fade-in slide-in-from-top-2">
+                    <button
+                      onClick={() => { setOrderArtisanFilter('All'); setShowOrderArtisanDropdown(false); }}
+                      className={`w-full text-left px-5 py-2.5 text-[11px] uppercase tracking-widest transition-all ${
+                        orderArtisanFilter === 'All' ? 'bg-[#FAF9F6] text-[#8B735B] font-bold border-l-2 border-[#8B735B]' : 'text-[#666] hover:bg-gray-50 border-l-2 border-transparent hover:text-[#2C2C2C]'
+                      }`}
+                    >
+                      All Artists
+                    </button>
+                    <div className="my-1 border-t border-gray-100"></div>
+                    {artisans.filter(a => a.status === 'approved').map(artisan => (
+                      <button
+                        key={artisan.id}
+                        onClick={() => { setOrderArtisanFilter(artisan.name); setShowOrderArtisanDropdown(false); }}
+                        className={`w-full text-left px-5 py-2.5 text-[11px] uppercase tracking-widest transition-all ${
+                          orderArtisanFilter === artisan.name ? 'bg-[#FAF9F6] text-[#8B735B] font-bold border-l-2 border-[#8B735B]' : 'text-[#666] hover:bg-gray-50 border-l-2 border-transparent hover:text-[#2C2C2C]'
+                        }`}
+                      >
+                        {artisan.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Helper Functions for the tables */}
+            {(() => {
+              const fmtDate = (dString: string) => {
+                const d = new Date(dString);
+                return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+              };
+              
+              const dotColor = (s: string) => {
+                if(s === 'pending' || s === 'waiting') return 'bg-amber-400 animate-pulse';
+                if(s === 'accepted' || s === 'confirmed' || s === 'shipped') return 'bg-blue-500';
+                if(s === 'completed' || s === 'delivered') return 'bg-green-500';
+                return 'bg-red-500';
+              };
+              
+              const statusStyle = (s: string) => {
+                if(s === 'pending' || s === 'waiting') return 'bg-amber-50 text-amber-700 border-amber-200';
+                if(s === 'accepted' || s === 'confirmed') return 'bg-blue-50 text-blue-700 border-blue-200';
+                if(s === 'shipped') return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                if(s === 'completed' || s === 'delivered') return 'bg-green-50 text-green-700 border-green-200';
+                return 'bg-red-50 text-red-700 border-red-200';
+              };
+
+              const groupByMonth = <T extends { createdAt: string }>(items: T[]) => {
+                return Object.entries(
+                  items
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .reduce((groups, item) => {
+                      const date = new Date(item.createdAt);
+                      const monthYear = date.toLocaleDateString('default', { month: 'long', year: 'numeric' });
+                      if (!groups[monthYear]) groups[monthYear] = [];
+                      groups[monthYear].push(item);
+                      return groups;
+                    }, {} as Record<string, T[]>)
+                );
+              };
+
+              return (
+                <div className="space-y-16">
+                  
+                  {/* --- CUSTOM COMMISSIONS TABLE --- */}
+                  {(orderTypeFilter === 'All' || orderTypeFilter === 'Custom Orders') && (
+                    <div className="space-y-6">
+                      <h3 className="text-2xl serif italic text-[#2C2C2C]">Custom Commissions</h3>
+                      {filteredCustomOrders.length === 0 ? (
+                        <div className="py-24 text-center bg-white border border-[#E5E5E5] shadow-sm rounded-sm">
+                          <p className="serif text-2xl italic text-[#999]">No custom commissions match this filter.</p>
                         </div>
-
-                        {/* Expandable Details */}
-                        {isExpanded && (
-                          <div className="p-6 border-t border-[#F0F0F0] bg-white animate-in slide-in-from-top-2 duration-300">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                              <div>
-                                <p className="text-[10px] uppercase tracking-widest text-[#999] mb-3 font-bold">Products</p>
-                                <div className="space-y-4">
-                                  {o.items.map((item, i) => (
-                                    <div key={i} className="flex items-center gap-4 py-3 border-b border-gray-50 last:border-0">
-                                      <img src={item.image} className="w-12 h-12 object-cover rounded" alt="" />
-                                      <div className="flex-grow">
-                                        <p className="text-sm font-medium">{item.name}</p>
-                                        <p className="text-[10px] text-[#999]">Qty: {item.quantity} • {item.size} • {item.finish}</p>
-                                      </div>
-                                      <p className="text-sm font-bold text-[#2C2C2C]">₹ {(item.price * item.quantity).toLocaleString()}</p>
-                                    </div>
-                                  ))}
-                                </div>
-                                <div className="mt-6 pt-4 border-t border-dashed border-gray-200">
-                                  <div className="flex justify-between items-center bg-[#FAF9F6] p-4 rounded">
-                                    <p className="text-xs uppercase tracking-widest font-bold">Total Amount</p>
-                                    <p className="text-lg font-bold text-[#2C2C2C]">₹ {o.totalAmount.toLocaleString()}</p>
-                                  </div>
-                                </div>
+                      ) : (
+                        <div className="bg-white border border-[#E5E5E5] shadow-sm rounded-sm overflow-hidden">
+                          {/* Table Header */}
+                          <div className="grid grid-cols-[1.5fr_1fr_1.5fr_1fr_1.5fr_1fr_auto] gap-4 p-4 border-b border-[#E5E5E5] bg-[#FAF9F6] text-[10px] uppercase tracking-widest font-bold text-[#999]">
+                            <div>Order ID</div>
+                            <div>Date</div>
+                            <div>Customer</div>
+                            <div>Assigned To</div>
+                            <div>Commission details</div>
+                            <div>Status</div>
+                            <div className="w-10 text-center"></div>
+                          </div>
+                          
+                          {/* Grouped Table Rows */}
+                          {groupByMonth(filteredCustomOrders).map(([monthYear, monthOrders]) => (
+                            <div key={monthYear}>
+                              {/* Sticky Month Divider */}
+                              <div className="bg-gray-50 border-y border-[#E5E5E5] px-4 py-2 text-xs uppercase tracking-[0.2em] font-bold text-[#8B735B] sticky top-[73px] z-10">
+                                {monthYear}
                               </div>
+                              
+                              {/* Individual Rows */}
+                              {monthOrders.map((o: any) => {
+                                const isExpanded = !!expandedOrders[o.id];
+                                return (
+                                  <React.Fragment key={o.id}>
+                                    <div 
+                                      onClick={() => toggleOrderExpansion(o.id)}
+                                      className={`grid grid-cols-[1.5fr_1fr_1.5fr_1fr_1.5fr_1fr_auto] gap-4 p-4 items-center border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50 ${isExpanded ? 'bg-[#FAF9F6]' : ''}`}
+                                    >
+                                      {/* Order ID */}
+                                      <div className="flex items-center gap-2">
+                                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor(o.status)}`} />
+                                        <p className="text-[11px] uppercase tracking-widest font-bold text-[#666] truncate">{o.id}</p>
+                                        <button onClick={(e: any) => { e.stopPropagation(); navigator.clipboard.writeText(o.id); alert('ID Copied!'); }} className="text-[#CCC] hover:text-[#8B735B]">
+                                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
+                                        </button>
+                                      </div>
+                                      
+                                      <div className="text-xs text-[#666]">{fmtDate(o.createdAt)}</div>
+                                      <div className="text-sm font-medium text-[#2C2C2C] truncate">{o.customerName}</div>
+                                      <div className="text-xs font-semibold text-[#8B735B] truncate">{o.assignedArtisanName || <span className="text-[#999] italic font-normal">Unassigned</span>}</div>
+                                      
+                                      <div className="text-xs text-[#666] truncate group relative">
+                                        <span className="truncate block">{o.category} • {o.size}</span>
+                                      </div>
 
-                              <div className="space-y-8">
-                                <div>
-                                  <p className="text-[10px] uppercase tracking-widest text-[#999] mb-3 font-bold">Customer Details</p>
-                                  <div className="bg-[#FAF9F6] p-5 border border-dashed border-gray-200 space-y-3">
-                                    <div>
-                                      <p className="text-[9px] uppercase tracking-widest text-[#999]">Contact</p>
-                                      <p className="text-xs font-medium">{o.customerEmail}</p>
-                                      {o.customerPhone && <p className="text-xs font-medium text-[#8B735B]">{o.customerPhone}</p>}
-                                    </div>
-                                    <div>
-                                      <p className="text-[9px] uppercase tracking-widest text-[#999]">Shipping Address</p>
-                                      <p className="text-xs font-light leading-relaxed">{o.shippingAddress}</p>
-                                      <p className="text-xs font-bold mt-1 text-[#2C2C2C]">{o.city}, {o.pincode}</p>
-                                    </div>
-                                    <div>
-                                      <p className="text-[9px] uppercase tracking-widest text-[#999]">Payment</p>
-                                      <p className="text-xs font-medium uppercase tracking-widest">{o.paymentMethod}</p>
-                                      {o.paymentId && (
-                                        <div className="flex items-center gap-1 mt-1">
-                                          <span className="text-[9px] font-mono text-[#8B735B]">{o.paymentId}</span>
-                                          <span className="text-[8px] bg-green-100 text-green-700 px-1.5 py-0.5 uppercase tracking-widest font-bold">✓ Verified</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                    {o.artisanName && (
                                       <div>
-                                        <p className="text-[9px] uppercase tracking-widest text-[#999]">Fulfilling Artisan</p>
-                                        <p className="text-xs font-bold text-[#8B735B]">{o.artisanName}</p>
+                                        <span className={`px-2.5 py-1 text-[9px] uppercase tracking-widest font-bold border rounded-full ${statusStyle(o.status)}`}>
+                                          {o.status}
+                                        </span>
                                       </div>
-                                    )}
-                                  </div>
-                                </div>
 
-                                <div>
-                                  <p className="text-[10px] uppercase tracking-widest text-[#999] mb-3 font-bold">Admin Controls</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {o.status === 'pending' && (
-                                      <button onClick={() => setDoc(doc(db, 'productOrders', o.id), { ...o, status: 'confirmed' })} className="text-[9px] uppercase tracking-widest bg-[#2C2C2C] text-white px-4 py-2 hover:bg-black font-bold">Confirm Order</button>
-                                    )}
-                                    {o.status === 'confirmed' && (
-                                      <div className="flex flex-col gap-2 w-full mt-2">
-                                        <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Enter Delhivery AWB to ship</p>
-                                        <div className="flex gap-2">
-                                          <input
-                                            type="text"
-                                            placeholder="e.g. 1234567890123"
-                                            value={awbInputs[o.id] || ''}
-                                            onChange={e => setAwbInputs(p => ({ ...p, [o.id]: e.target.value }))}
-                                            className="flex-1 border border-[#E5E5E5] px-3 py-2 text-xs focus:outline-none focus:border-indigo-400"
-                                          />
-                                          <button
-                                            disabled={awbSaving[o.id] || !awbInputs[o.id]?.trim()}
-                                            onClick={async () => {
-                                              const awb = awbInputs[o.id]?.trim();
-                                              if (!awb) return;
-                                              setAwbSaving(p => ({ ...p, [o.id]: true }));
-                                              const trackingUrl = `https://www.delhivery.com/track/package/${awb}`;
-                                              await setDoc(doc(db, 'productOrders', o.id), {
-                                                ...o,
-                                                status: 'shipped',
-                                                awb,
-                                                trackingUrl,
-                                                shippingStatus: 'In Transit',
-                                                shippedAt: new Date().toISOString()
-                                              });
-                                              setAwbInputs(p => ({ ...p, [o.id]: '' }));
-                                              setAwbSaving(p => ({ ...p, [o.id]: false }));
-                                            }}
-                                            className="text-[9px] uppercase tracking-widest bg-indigo-600 text-white px-4 py-2 hover:bg-indigo-700 font-bold disabled:opacity-50"
-                                          >
-                                            {awbSaving[o.id] ? 'Saving...' : 'Ship ✓'}
-                                          </button>
-                                        </div>
-                                        {o.awb && <p className="text-[9px] text-[#8B735B] font-mono">Current AWB: {o.awb}</p>}
+                                      <div className="w-10 text-center">
+                                       <button className={`text-[#BBB] transition-transform duration-300 ${isExpanded ? 'rotate-180 text-[#8B735B]' : 'hover:text-[#2C2C2C]'}`}>
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>
+                                        </button>
                                       </div>
-                                    )}
-                                    {o.status === 'shipped' && (
-                                      <div className="flex flex-col gap-2 w-full mt-2">
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-[9px] uppercase tracking-widest text-indigo-600 font-bold">AWB: {o.awb}</span>
-                                          <a href={o.trackingUrl || `https://www.delhivery.com/track/package/${o.awb}`} target="_blank" rel="noreferrer" className="text-[9px] uppercase tracking-widest text-[#8B735B] hover:underline">Track →</a>
-                                        </div>
-                                        <button
-                                          onClick={() => setDoc(doc(db, 'productOrders', o.id), { ...o, status: 'delivered', shippingStatus: 'Delivered', deliveredAt: new Date().toISOString() })}
-                                          className="text-[9px] uppercase tracking-widest bg-green-600 text-white px-4 py-2 hover:bg-green-700 font-bold"
-                                        >Mark Delivered</button>
-                                      </div>
-                                    )}
-                                    {(o.status === 'pending' || o.status === 'confirmed') && (
-                                      <button onClick={() => setDoc(doc(db, 'productOrders', o.id), { ...o, status: 'cancelled' })} className="text-[9px] uppercase tracking-widest border border-red-200 text-red-500 px-4 py-2 hover:bg-red-50">Cancel Order</button>
-                                    )}
-                                  </div>
-                                  <p className="text-[9px] text-[#BBB] mt-4 uppercase tracking-[0.2em]">Received on {new Date(o.createdAt).toLocaleString()}</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              {orderTypeFilter === 'All' && <hr className="border-[#E5E5E5]" />}
-            </>
-          )}
+                                    </div>
 
-          {/* Custom Orders */}
-          {(orderTypeFilter === 'All' || orderTypeFilter === 'Custom Orders') && (
-            <>
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-medium">Custom Orders ({orders.length})</h2>
-                <div className="flex gap-3 text-[10px] uppercase tracking-widest text-[#999]">
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 bg-amber-400 rounded-full animate-status-flash"></span> Pending: {pendingOrders.length}</span>
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 bg-green-500 rounded-full"></span> Completed: {orders.filter(o => o.status === 'completed').length}</span>
-                </div>
-              </div>
-              {orders.length === 0 ? (
-                <p className="text-center py-12 text-[#999] italic serif text-xl">No custom orders yet.</p>
-              ) : (
-                <div className="grid grid-cols-1 gap-4">
-                  {[...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(o => {
-                    const isExpanded = !!expandedOrders[o.id];
-                    return (
-                      <div key={o.id} className={`bg-white border transition-all duration-300 overflow-hidden ${isExpanded ? 'ring-1 ring-[#8B735B] shadow-md mb-2' : 'hover:border-[#8B735B]/50'} ${o.status === 'pending' ? 'animate-bg-flash border-amber-200 shadow-[inset_0_0_20px_rgba(251,191,36,0.05)]' : ''}`}>
-                        {/* Condensed Header */}
-                        <div
-                          onClick={() => toggleOrderExpansion(o.id)}
-                          className={`p-4 cursor-pointer flex items-center justify-between transition-colors ${isExpanded ? 'bg-[#FAF9F6]' : 'hover:bg-gray-50'}`}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className={`w-2 h-2 rounded-full ${o.status === 'pending' ? 'bg-amber-400 animate-status-flash' : o.status === 'completed' ? 'bg-green-500' : 'bg-blue-500'}`} />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">{o.id}</p>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(o.id); alert('ID Copied!'); }}
-                                  className="text-[#BBB] hover:text-[#8B735B] transition-colors"
-                                >
-                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
-                                </button>
-                              </div>
-                              <h4 className="text-sm font-medium">{o.customerName}</h4>
+                                    {/* Expanded Detail Panel */}
+                                    {isExpanded && (
+                                      <div className="col-span-full border-b border-gray-200 bg-[#FAF9F6] p-0 overflow-hidden animate-in slide-in-from-top-2 duration-300">
+                                        <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-12">
+                                          {/* Left Col: Details */}
+                                          <div className="space-y-8">
+                                            <div>
+                                              <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-3">Client Vision</p>
+                                              <div className="bg-white border border-[#E5E5E5] p-5 rounded-sm shadow-sm space-y-4">
+                                                <p className="text-sm text-[#4A4A4A] leading-relaxed italic border-l-2 border-[#8B735B] pl-4">"{o.concept}"</p>
+                                                <div className="grid grid-cols-2 gap-4 text-xs">
+                                                  <div><p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Category</p><p className="font-semibold">{o.category}</p></div>
+                                                  <div><p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Finish</p><p className="font-semibold">{o.finish}</p></div>
+                                                  <div><p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Dimensions</p><p className="font-semibold">{o.dimensions}</p></div>
+                                                  <div><p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Size Class</p><p className="font-semibold">{o.size}</p></div>
+                                                </div>
+                                                {o.budget && (
+                                                  <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                                                    <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Client Budget</p>
+                                                    <p className="font-bold text-[#2C2C2C]">₹ {parseInt(o.budget, 10).toLocaleString()}</p>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+
+                                            <div>
+                                              <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-3">Customer Contact & Payment</p>
+                                              <div className="bg-white border border-[#E5E5E5] p-5 rounded-sm shadow-sm flex flex-col gap-2">
+                                                <p className="text-sm font-semibold">{o.customerName || o.email}</p>
+                                                <p className="text-xs text-[#666]">{o.email}</p>
+                                                {o.phone && <p className="text-xs text-[#8B735B] font-bold">{o.phone}</p>}
+                                                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                                                  <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Advance Payment</p>
+                                                  <div className="text-right">
+                                                    <p className="text-sm font-bold text-[#2C2C2C]">₹ {(o.advancePayment?.amount || 0).toLocaleString()} via {o.advancePayment?.method}</p>
+                                                    <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-bold ${o.advancePayment?.paid ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
+                                                        {o.advancePayment?.paid ? 'Paid' : 'Unpaid'}
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* Right Col: Admin Controls */}
+                                          <div>
+                                            <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-3">Admin Controls & Assignment</p>
+                                            <div className="bg-white border border-[#E5E5E5] p-6 rounded-sm shadow-sm h-full flex flex-col justify-between">
+                                              
+                                              {/* Actions Base Structure */}
+                                              <div className="space-y-6">
+                                                {o.status === 'pending' && (
+                                                  <div className="space-y-4">
+                                                    <div>
+                                                      <label className="text-[9px] uppercase tracking-widest text-[#999] font-bold mb-1.5 block">Assign Artisan</label>
+                                                      <select
+                                                        className="w-full text-xs box-border border border-[#D1D1D1] px-4 py-3 text-[#2C2C2C] bg-[#FAF9F6] focus:outline-none focus:border-[#8B735B] rounded-sm transition-colors"
+                                                        value={o.assignedArtisanId || ''}
+                                                        onChange={(e) => {
+                                                          const selected = artisans.find(a => a.id === e.target.value);
+                                                          setDoc(doc(db, 'customOrders', o.id), { ...o, assignedArtisanId: e.target.value, assignedArtisanName: selected?.name || '' });
+                                                        }}
+                                                      >
+                                                        <option value="">— Select an Approved Artisan —</option>
+                                                        {artisans.filter(a => a.status === 'approved').map(a => (
+                                                          <option key={a.id} value={a.id}>{a.name}</option>
+                                                        ))}
+                                                      </select>
+                                                    </div>
+                                                    
+                                                    <div className="flex gap-2 pt-2 border-t border-gray-50">
+                                                      <button
+                                                        onClick={() => {
+                                                          if (!o.assignedArtisanId) { alert('Please assign an artisan first'); return; }
+                                                          handleOrderStatus(o.id, 'accepted');
+                                                        }}
+                                                        className="flex-1 bg-[#2C2C2C] text-white py-3.5 text-[10px] uppercase tracking-widest font-bold hover:bg-[#8B735B] transition-all rounded-sm shadow-md"
+                                                      >Approve & Send to Artisan</button>
+                                                      <button
+                                                        onClick={() => handleOrderStatus(o.id, 'rejected')}
+                                                        className="flex-1 border border-red-200 text-red-600 py-3.5 text-[10px] uppercase tracking-widest font-bold hover:bg-red-50 hover:border-red-300 transition-all rounded-sm"
+                                                      >Reject Commission</button>
+                                                    </div>
+                                                  </div>
+                                                )}
+
+                                                {o.status === 'accepted' && (
+                                                  <div className="space-y-4">
+                                                    <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
+                                                      <p className="text-[10px] uppercase tracking-widest text-blue-800 font-bold mb-1">In Progress</p>
+                                                      <p className="text-sm text-blue-900">Assigned to: <span className="font-bold">{o.assignedArtisanName}</span></p>
+                                                    </div>
+                                                    <button
+                                                      onClick={() => handleOrderStatus(o.id, 'completed')}
+                                                      className="w-full bg-[#2C2C2C] text-white py-4 text-[10px] uppercase tracking-widest font-bold hover:bg-[#8B735B] transition-all rounded-sm shadow-md"
+                                                    >
+                                                      Finalize Commission (Mark Completed) ✓
+                                                    </button>
+                                                  </div>
+                                                )}
+
+                                                {o.status === 'completed' && (
+                                                  <div className="p-5 bg-green-50/50 border border-green-100 rounded-sm flex items-center justify-between">
+                                                    <div>
+                                                      <p className="text-[10px] uppercase tracking-widest text-green-800 font-bold mb-1">Status</p>
+                                                      <p className="text-sm font-bold text-green-900">Successfully Completed</p>
+                                                      <p className="text-xs text-green-700 mt-1">By {o.assignedArtisanName}</p>
+                                                    </div>
+                                                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 border border-green-200">
+                                                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                                                    </div>
+                                                  </div>
+                                                )}
+
+                                                {/* Optional Admin Note UI could go here */}
+                                                {o.adminNote && (
+                                                  <div className="mt-4 p-4 bg-amber-50/30 border border-amber-100 rounded-sm">
+                                                    <p className="text-[10px] uppercase tracking-widest text-amber-800 font-bold mb-1">Admin History Note</p>
+                                                    <p className="text-xs text-amber-900 italic">{o.adminNote}</p>
+                                                  </div>
+                                                )}
+                                              </div>
+                                              
+                                              <p className="text-[9px] text-[#BBB] uppercase tracking-[0.2em] mt-8 text-center border-t border-gray-100 pt-4">
+                                                Created on {new Date(o.createdAt).toLocaleString()}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </React.Fragment>
+                                );
+                              })}
                             </div>
-                          </div>
-                          <div className="flex items-center gap-8">
-                            <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded font-bold border ${o.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                              o.status === 'completed' ? 'bg-green-50 text-green-700 border-green-200' :
-                                o.status === 'accepted' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                  'bg-red-50 text-red-700 border-red-200'
-                              }`}>{o.status}</span>
-                            <button className={`text-[#999] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>
-                            </button>
-                          </div>
+                          ))}
                         </div>
+                      )}
+                    </div>
+                  )}
 
-                        {/* Expandable Details */}
-                        {isExpanded && (
-                          <div className="p-6 border-t border-[#F0F0F0] bg-white animate-in slide-in-from-top-2 duration-300">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                              <div>
-                                <p className="text-[10px] uppercase tracking-widest text-[#999] mb-3 font-bold">Commission Details</p>
-                                <div className="space-y-4">
-                                  <div className="bg-[#FAF9F6] p-4 rounded border-l-2 border-[#8B735B]">
-                                    <p className="text-sm font-light leading-relaxed text-[#4A4A4A] italic">"{o.concept}"</p>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-4 text-[11px] uppercase tracking-widest">
-                                    <div className="bg-gray-50 p-3">
-                                      <p className="text-[#999] text-[9px] mb-1">Specifications</p>
-                                      <p className="font-bold">{o.size} • {o.finish}</p>
-                                    </div>
-                                    <div className="bg-gray-50 p-3">
-                                      <p className="text-[#999] text-[9px] mb-1">Dimensions</p>
-                                      <p className="font-bold">{o.dimensions}</p>
-                                    </div>
-                                  </div>
-                                  {o.budget && (
-                                    <div className="bg-gray-50 p-3">
-                                      <p className="text-[#999] text-[9px] mb-1">Client Budget</p>
-                                      <p className="font-bold">₹ {o.budget.toLocaleString()}</p>
-                                    </div>
-                                  )}
-                                  {o.adminNote && (
-                                    <div className="mt-4 p-4 bg-red-50/30 border border-red-100 rounded">
-                                      <p className="text-[10px] uppercase tracking-widest text-red-800 font-bold mb-1">Internal Admin Note</p>
-                                      <p className="text-xs text-red-700 leading-relaxed italic">{o.adminNote}</p>
-                                    </div>
-                                  )}
-                                </div>
+                  {/* --- MASTERPIECE SALES (SHOP) TABLE --- */}
+                  {(orderTypeFilter === 'All' || orderTypeFilter === 'Shop Orders') && (
+                    <div className="space-y-6">
+                      <h3 className="text-2xl serif italic text-[#2C2C2C]">Masterpiece Sales</h3>
+                      {filteredShopOrders.length === 0 ? (
+                        <div className="py-24 text-center bg-white border border-[#E5E5E5] shadow-sm rounded-sm">
+                          <p className="serif text-2xl italic text-[#999]">No shop orders match this filter.</p>
+                        </div>
+                      ) : (
+                        <div className="bg-white border border-[#E5E5E5] shadow-sm rounded-sm overflow-hidden">
+                          {/* Table Header */}
+                          <div className="grid grid-cols-[1.5fr_1fr_1.5fr_1.5fr_1fr_1fr_auto] gap-4 p-4 border-b border-[#E5E5E5] bg-[#FAF9F6] text-[10px] uppercase tracking-widest font-bold text-[#999]">
+                            <div>Order ID</div>
+                            <div>Date</div>
+                            <div>Customer</div>
+                            <div>Products</div>
+                            <div>Total Amount</div>
+                            <div>Status</div>
+                            <div className="w-10 text-center"></div>
+                          </div>
+                          
+                          {/* Grouped Table Rows */}
+                          {groupByMonth(filteredShopOrders).map(([monthYear, monthOrders]) => (
+                            <div key={monthYear}>
+                              {/* Sticky Month Divider */}
+                              <div className="bg-gray-50 border-y border-[#E5E5E5] px-4 py-2 text-xs uppercase tracking-[0.2em] font-bold text-[#8B735B] sticky top-[73px] z-10">
+                                {monthYear}
                               </div>
+                              
+                              {/* Individual Rows */}
+                              {monthOrders.map((o: any) => {
+                                const isExpanded = !!expandedOrders[o.id];
+                                return (
+                                  <React.Fragment key={o.id}>
+                                    <div 
+                                      onClick={() => toggleOrderExpansion(o.id)}
+                                      className={`grid grid-cols-[1.5fr_1fr_1.5fr_1.5fr_1fr_1fr_auto] gap-4 p-4 items-center border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50 ${isExpanded ? 'bg-[#FAF9F6]' : ''}`}
+                                    >
+                                      {/* Order ID */}
+                                      <div className="flex items-center gap-2">
+                                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor(o.status)}`} />
+                                        <p className="text-[11px] uppercase tracking-widest font-bold text-[#666] truncate">{o.id}</p>
+                                        <button onClick={(e: any) => { e.stopPropagation(); navigator.clipboard.writeText(o.id); alert('ID Copied!'); }} className="text-[#CCC] hover:text-[#8B735B]">
+                                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
+                                        </button>
+                                      </div>
+                                      
+                                      <div className="text-xs text-[#666]">{fmtDate(o.createdAt)}</div>
+                                      <div className="text-sm font-medium text-[#2C2C2C] truncate">{o.customerName}</div>
+                                      
+                                      <div className="text-xs text-[#666] truncate group relative">
+                                        <span className="truncate block font-medium">
+                                          {o.items.length} {o.items.length === 1 ? 'Item' : 'Items'} <span className="font-normal text-[#999]">— {o.items[0]?.name}</span>
+                                        </span>
+                                      </div>
 
-                              <div className="space-y-8">
-                                <div>
-                                  <p className="text-[10px] uppercase tracking-widest text-[#999] mb-3 font-bold">Customer Info</p>
-                                  <div className="bg-[#FAF9F6] p-5 border border-dashed border-gray-200 space-y-3">
-                                    <p className="text-xs font-medium">{o.email}</p>
-                                    {o.phone && <p className="text-xs font-bold text-[#8B735B]">{o.phone}</p>}
-                                    <div className="pt-2 border-t border-gray-100">
-                                      <p className="text-[9px] uppercase tracking-widest text-[#999]">Advance Payment</p>
-                                      <p className="text-xs font-bold">₹ {o.advancePayment?.amount?.toLocaleString() || 0} via {o.advancePayment?.method}</p>
-                                      <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-bold ${o.advancePayment?.paid ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-                                        {o.advancePayment?.paid ? 'Paid' : 'Unpaid'}
-                                      </span>
+                                      <div className="text-sm font-bold text-[#2C2C2C]">
+                                        ₹ {o.totalAmount?.toLocaleString() || 0}
+                                      </div>
+
+                                      <div>
+                                      <span className={`px-2.5 py-1 text-[9px] uppercase tracking-widest font-bold border rounded-full ${statusStyle(o.status)}`}>
+                                          {o.status}
+                                        </span>
+                                      </div>
+
+                                      <div className="w-10 text-center">
+                                       <button className={`text-[#BBB] transition-transform duration-300 ${isExpanded ? 'rotate-180 text-[#8B735B]' : 'hover:text-[#2C2C2C]'}`}>
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>
+                                        </button>
+                                      </div>
                                     </div>
-                                  </div>
-                                </div>
 
-                                <div>
-                                  <p className="text-[10px] uppercase tracking-widest text-[#999] mb-3 font-bold">Assignment & Approval</p>
-                                  <div className="space-y-4">
-                                    {o.status === 'pending' && (
-                                      <div className="flex flex-col gap-3">
-                                        <select
-                                          className="text-[11px] border border-gray-200 px-3 py-2 text-[#4A4A4A] w-full bg-white uppercase tracking-widest focus:outline-none focus:border-[#8B735B]"
-                                          value={o.assignedArtisanId || ''}
-                                          onChange={(e) => {
-                                            const selected = artisans.find(a => a.id === e.target.value);
-                                            setDoc(doc(db, 'customOrders', o.id), { ...o, assignedArtisanId: e.target.value, assignedArtisanName: selected?.name || '' });
-                                          }}
-                                        >
-                                          <option value="">— Assign Artisan —</option>
-                                          {artisans.filter(a => a.status === 'approved').map(a => (
-                                            <option key={a.id} value={a.id}>{a.name}</option>
-                                          ))}
-                                        </select>
-                                        <div className="flex gap-2">
-                                          <button
-                                            onClick={() => {
-                                              if (!o.assignedArtisanId) { alert('Please assign an artisan first'); return; }
-                                              handleOrderStatus(o.id, 'accepted');
-                                            }}
-                                            className="flex-grow bg-[#2C2C2C] text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-black transition-all"
-                                          >Approve & Send to Artisan</button>
-                                          <button
-                                            onClick={() => handleOrderStatus(o.id, 'rejected')}
-                                            className="px-4 border border-red-200 text-red-500 text-[10px] uppercase tracking-widest hover:bg-red-50"
-                                          >Reject Project</button>
+                                    {/* Expanded Detail Panel */}
+                                    {isExpanded && (
+                                      <div className="col-span-full border-b border-gray-200 bg-[#FAF9F6] p-0 overflow-hidden animate-in slide-in-from-top-2 duration-300">
+                                        <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-12">
+                                          {/* Left Col: Order Items & Shipping */}
+                                          <div className="space-y-8">
+                                            <div>
+                                              <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-3 border-b border-[#E5E5E5] pb-2">Purchased Items</p>
+                                              <div className="bg-white border border-[#E5E5E5] p-2 rounded-sm shadow-sm space-y-1">
+                                                {o.items.map((item: any, i: number) => (
+                                                  <div key={i} className="flex items-center gap-4 p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
+                                                    <img src={item.image} className="w-12 h-12 object-cover rounded border border-[#E5E5E5]" alt="" />
+                                                    <div className="flex-grow">
+                                                      <p className="text-xs font-bold text-[#2C2C2C]">{item.name}</p>
+                                                      <p className="text-[10px] text-[#8B735B] font-semibold mt-0.5">{item.artisanName}</p>
+                                                      <p className="text-[10px] text-[#999] mt-0.5">Qty: {item.quantity} • {item.size} • {item.finish}</p>
+                                                    </div>
+                                                    <p className="text-sm font-bold text-[#2C2C2C]">₹ {(item.price * item.quantity).toLocaleString()}</p>
+                                                  </div>
+                                                ))}
+                                                <div className="p-4 bg-[#FAF9F6] rounded flex items-center justify-between border-t border-[#E5E5E5]">
+                                                  <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold">Total Settled Amount</p>
+                                                  <p className="text-lg font-bold text-[#2C2C2C]">₹ {o.totalAmount?.toLocaleString()}</p>
+                                                </div>
+                                              </div>
+                                            </div>
+
+                                            <div>
+                                              <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-3">Shipping Profile</p>
+                                              <div className="bg-white border border-[#E5E5E5] p-5 rounded-sm shadow-sm flex flex-col gap-2">
+                                                <p className="text-sm font-semibold">{o.customerName}</p>
+                                                <p className="text-xs font-medium text-[#666]">{o.customerEmail}</p>
+                                                {o.customerPhone && <p className="text-xs font-bold text-[#8B735B] border-b border-gray-100 pb-2">{o.customerPhone}</p>}
+                                                
+                                                <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold mt-2">Delivery Address</p>
+                                                <p className="text-xs text-[#2C2C2C] font-light leading-relaxed">{o.shippingAddress}</p>
+                                                <p className="text-xs font-bold text-[#2C2C2C]">{o.city}, {o.pincode}</p>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* Right Col: Admin Controls & Fulfillment */}
+                                          <div className="flex flex-col h-full">
+                                            <p className="text-[10px] uppercase tracking-widest text-[#999] font-bold mb-3 border-b border-[#E5E5E5] pb-2">Logistics & Fulfillment</p>
+                                            <div className="bg-white border border-[#E5E5E5] p-6 rounded-sm shadow-sm flex-grow flex flex-col justify-between">
+                                              
+                                              <div className="space-y-6">
+                                                
+                                                {o.status === 'pending' && (
+                                                  <div className="text-center p-6 border-2 border-dashed border-amber-200 bg-amber-50/30 rounded-sm">
+                                                    <p className="text-xs text-amber-800 font-bold mb-3">Payments check required</p>
+                                                    <div className="flex justify-center gap-3">
+                                                      <button 
+                                                        onClick={() => setDoc(doc(db, 'productOrders', o.id), { ...o, status: 'confirmed' })}
+                                                        className="bg-[#2C2C2C] px-6 py-2.5 text-white text-[10px] uppercase tracking-widest font-bold rounded-sm shadow-sm hover:bg-[#8B735B] transition-colors"
+                                                      >Confirm Order Payment</button>
+                                                      <button 
+                                                        onClick={() => setDoc(doc(db, 'productOrders', o.id), { ...o, status: 'cancelled' })} 
+                                                        className="border border-red-200 px-6 py-2.5 text-red-600 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-red-50 transition-colors"
+                                                      >Cancel</button>
+                                                    </div>
+                                                  </div>
+                                                )}
+
+                                                {o.status === 'confirmed' && (
+                                                  <div className="bg-blue-50/30 border border-blue-100 p-5 rounded-sm">
+                                                    <p className="text-[10px] uppercase tracking-widest text-blue-800 font-bold mb-3">Order Confirmed. Ready for Shipping.</p>
+                                                    <div className="space-y-3">
+                                                      <label className="text-[9px] uppercase tracking-widest text-[#666] font-bold">Delhivery AWB Tracking Number</label>
+                                                      <div className="flex gap-2">
+                                                        <input
+                                                          type="text"
+                                                          placeholder="Scan or enter 13-digit AWB"
+                                                          value={awbInputs[o.id] || ''}
+                                                          onChange={e => setAwbInputs(p => ({ ...p, [o.id]: e.target.value }))}
+                                                          className="flex-1 border border-[#D1D1D1] px-4 py-3 text-sm focus:outline-none focus:border-[#8B735B] font-mono rounded-sm shadow-inner"
+                                                        />
+                                                        <button
+                                                          disabled={awbSaving[o.id] || !awbInputs[o.id]?.trim()}
+                                                          onClick={async () => {
+                                                            const awb = awbInputs[o.id]?.trim();
+                                                            if (!awb) return;
+                                                            setAwbSaving(p => ({ ...p, [o.id]: true }));
+                                                            const trackingUrl = `https://www.delhivery.com/track/package/${awb}`;
+                                                            await setDoc(doc(db, 'productOrders', o.id), {
+                                                              ...o,
+                                                              status: 'shipped',
+                                                              awb,
+                                                              trackingUrl,
+                                                              shippingStatus: 'In Transit',
+                                                              shippedAt: new Date().toISOString()
+                                                            });
+                                                            setAwbInputs(p => ({ ...p, [o.id]: '' }));
+                                                            setAwbSaving(p => ({ ...p, [o.id]: false }));
+                                                          }}
+                                                          className="text-[10px] uppercase tracking-widest bg-[#2C2C2C] text-white px-6 py-3 hover:bg-[#8B735B] font-bold rounded-sm disabled:opacity-50 transition-colors"
+                                                        >
+                                                          {awbSaving[o.id] ? 'Saving...' : 'Mark Shipped'}
+                                                        </button>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                )}
+
+                                                {o.status === 'shipped' && (
+                                                  <div className="space-y-4">
+                                                    <div className="bg-[#FAF9F6] border border-[#E5E5E5] p-5 rounded-sm flex items-center justify-between shadow-sm">
+                                                      <div>
+                                                        <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold mb-1">Tracking Number</p>
+                                                        <p className="text-sm font-mono font-bold text-[#8B735B]">{o.awb}</p>
+                                                      </div>
+                                                      <a href={o.trackingUrl || `https://www.delhivery.com/track/package/${o.awb}`} target="_blank" rel="noreferrer" 
+                                                        className="text-[10px] uppercase tracking-widest bg-white border border-[#E5E5E5] text-[#2C2C2C] px-4 py-2 hover:border-[#8B735B] hover:text-[#8B735B] font-bold rounded-sm transition-colors flex items-center gap-2 shadow-sm">
+                                                        Track <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                                      </a>
+                                                    </div>
+                                                    
+                                                    <button
+                                                      onClick={() => setDoc(doc(db, 'productOrders', o.id), { ...o, status: 'delivered', shippingStatus: 'Delivered', deliveredAt: new Date().toISOString() })}
+                                                      className="w-full text-[10px] uppercase tracking-widest bg-green-600 text-white py-4 hover:bg-green-700 font-bold rounded-sm shadow-md transition-colors"
+                                                    >
+                                                      Confirm Delivery (Mark Delivered) ✓
+                                                    </button>
+                                                  </div>
+                                                )}
+
+                                                {o.status === 'delivered' && (
+                                                  <div className="p-5 bg-green-50/50 border border-green-100 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                                    <div>
+                                                      <p className="text-[10px] uppercase tracking-widest text-green-800 font-bold mb-1">Final Status</p>
+                                                      <p className="text-sm font-bold text-green-900">Successfully Delivered</p>
+                                                    </div>
+                                                    {o.awb && (
+                                                      <div className="text-right">
+                                                        <p className="text-[9px] uppercase tracking-widest text-green-700 font-bold">AWB Tracking</p>
+                                                        <p className="text-xs font-mono font-bold text-green-800">{o.awb}</p>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                )}
+
+                                                {/* Meta Info */}
+                                                <div className="border-t border-gray-100 pt-4 space-y-2 mt-auto">
+                                                  <div className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-sm border border-gray-100">
+                                                    <p className="text-[9px] uppercase tracking-widest text-[#999] font-bold">Payment Status</p>
+                                                    <div className="flex items-center gap-1.5">
+                                                      <span className="text-[10px] font-mono text-[#2C2C2C]">{o.paymentId || 'Prepaid'}</span>
+                                                      <span className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center">
+                                                        <svg className="w-2.5 h-2.5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                                                      </span>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              
+                                              <p className="text-[9px] text-[#BBB] uppercase tracking-[0.2em] mt-6 text-center">
+                                                Order placed on {new Date(o.createdAt).toLocaleString()}
+                                              </p>
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
                                     )}
-                                    {o.status === 'accepted' && (
-                                      <div className="bg-blue-50/50 p-4 border border-blue-100 rounded">
-                                        <p className="text-[10px] uppercase tracking-widest text-blue-800 font-bold mb-1">In Progress</p>
-                                        <p className="text-xs text-blue-700">Artisan: <span className="font-bold">{o.assignedArtisanName}</span></p>
-                                        <button
-                                          onClick={() => handleOrderStatus(o.id, 'completed')}
-                                          className="mt-4 w-full bg-green-600 text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-green-700 transition-all"
-                                        >Finalize Commission (Completed)</button>
-                                      </div>
-                                    )}
-                                    {o.status === 'completed' && (
-                                      <div className="bg-green-50/50 p-4 border border-green-100 rounded">
-                                        <p className="text-[10px] uppercase tracking-widest text-green-800 font-bold">Successfully Completed</p>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <p className="text-[9px] text-[#BBB] mt-6 uppercase tracking-[0.2em]">Submitted on {new Date(o.createdAt).toLocaleString()}</p>
-                                </div>
-                              </div>
+                                  </React.Fragment>
+                                );
+                              })}
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                 </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
+              );
+            })()}
+
+          </div>
+        );
+      })()}
+
 
       {/* Workshop mode filter — only on academy tab */}
       {activeTab === 'pending-workshops' && (
