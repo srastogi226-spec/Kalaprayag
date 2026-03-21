@@ -36,11 +36,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   products, setProducts, orders, setOrders, applications, setApplications, artisans, setArtisans, workshops, setWorkshops, reviews, setReviews, customRequests, institutionRequests, setInstitutionRequests, productOrders = [], journalEntries = [], invoices = [], classBookings = []
 }) => {
 
-  // ── Auth gate ─────────────────────────────────────────────────────────
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    try { return sessionStorage.getItem('kp_admin_auth') === 'true'; } catch { return false; }
-  });
-  const [pwError, setPwError] = useState('');
 
   // Dashboard states
   const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'workshops' | 'product-orders' | 'artisans' | 'manage-artisans' | 'pending-products' | 'pending-workshops' | 'active-workshops' | 'moderation' | 'marketplace-requests' | 'institution-requests' | 'journal' | 'invoices' | 'shipping' | 'bookings'>('inventory');
@@ -77,59 +72,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setExpandedWorkshops(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const ALLOWED_ADMINS = ['srastogi226@gmail.com']; // ✅ Only this email has admin access
-
-  const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      if (ALLOWED_ADMINS.includes(result.user.email || "")) {
-        setIsAuthenticated(true);
-        sessionStorage.setItem('kp_admin_auth', 'true');
-        setPwError('');
-      } else {
-        setPwError('Access Denied: You are not an authorized administrator.');
-      }
-    } catch (error: any) {
-      setPwError('Login failed: ' + error.message);
-    }
+  const handleAdminLogout = () => {
+    localStorage.removeItem('kp_admin_auth_session');
+    window.location.reload();
   };
-
-
-
-  const handleAdminLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error: any) {
-      console.error(error);
-    }
-    setIsAuthenticated(false);
-    try { sessionStorage.removeItem('kp_admin_auth'); } catch { }
-  };
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen pt-32 pb-24 px-6 flex items-center justify-center bg-[#FAF9F6]">
-        <div className="w-full max-w-sm">
-          <div className="text-center mb-10">
-            <span className="text-[10px] uppercase tracking-[0.4em] text-[#8B735B] font-bold">Restricted Access</span>
-            <h1 className="text-4xl serif mt-3 mb-3">Admin Console</h1>
-            <p className="text-[#999] text-sm font-light">Enter your credentials to continue.</p>
-          </div>
-          {pwError && (
-            <div className="bg-red-50 text-red-700 text-xs p-3 leading-relaxed rounded mb-6 text-center">
-              {pwError}
-            </div>
-          )}
-
-          <button onClick={handleGoogleLogin} type="button" className="mt-6 w-full bg-white border border-[#E5E5E5] text-[#2C2C2C] py-4 text-xs uppercase tracking-[0.3em] font-bold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all shadow-sm rounded">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-4 h-4" />
-            Sign in with Google
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // ── Dashboard content (existing code below) ───────────────────────────
 
