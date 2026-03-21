@@ -163,14 +163,19 @@ const Navbar: React.FC<NavbarProps> = ({
       >
         <div className="flex flex-col min-h-full items-center justify-center px-10 pt-32 pb-16 space-y-12">
           {/* Main Links */}
-          <div className="grid grid-cols-2 gap-y-8 gap-x-6 md:gap-y-12 md:gap-x-16 text-center w-full max-w-2xl mx-auto">
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6 w-full max-w-5xl mx-auto px-4 mt-8">
             {navLinks.map((link, idx) => (
               <button
                 key={link.id}
                 onClick={() => handleMobileNavigate(link.id)}
-                className={`text-2xl md:text-5xl serif tracking-wider transition-all duration-700 transform ${isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
-                  } ${currentPage === link.id ? 'text-[#8B735B]' : 'text-white hover:text-[#8B735B]'}`}
-                style={{ transitionDelay: `${idx * 100}ms` }}
+                className={`border border-white/20 bg-transparent backdrop-blur-sm px-6 py-4 md:px-10 md:py-5 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] transition-all duration-500 transform ${
+                  isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+                } ${
+                  currentPage === link.id 
+                    ? 'bg-white text-[#1A1A1A] border-white' 
+                    : 'text-white hover:bg-white hover:text-[#1A1A1A] shadow-lg hover:shadow-2xl hover:-translate-y-1'
+                }`}
+                style={{ transitionDelay: `${idx * 50}ms` }}
               >
                 {link.name}
               </button>
