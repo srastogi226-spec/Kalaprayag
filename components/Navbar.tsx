@@ -299,18 +299,12 @@ const Navbar: React.FC<NavbarProps> = ({
           {/* Secondary Actions */}
           <div className={`flex flex-col w-full gap-4 max-w-sm transition-all duration-700 delay-[600ms] ${isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
             }`}>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex justify-center">
               <button
                 onClick={() => handleMobileNavigate('artisan-login')}
                 className="w-full py-4 bg-white/5 border border-white/10 text-white text-[9px] tracking-[0.2em] uppercase font-bold hover:bg-white/10"
               >
                 Artisan Login
-              </button>
-              <button
-                onClick={() => handleMobileNavigate('admin')}
-                className="w-full py-4 bg-white text-[#1A1A1A] text-[9px] tracking-[0.2em] uppercase font-bold hover:bg-gray-200"
-              >
-                Admin Panel
               </button>
             </div>
           </div>
