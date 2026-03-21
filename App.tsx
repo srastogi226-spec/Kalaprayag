@@ -752,6 +752,26 @@ const AppContent: React.FC = () => {
           onViewInvoice={() => setIsInvoiceModalOpen(true)}
         />;
       case 'track-order':
+        if (currentUser) {
+          return (
+            <CollectorDashboard
+              userEmail={currentUser.email || ''}
+              userId={currentUser.uid}
+              customOrders={customOrders}
+              productOrders={productOrders}
+              classBookings={classBookings}
+              favoriteArtisans={favoriteArtisans}
+              favoriteProducts={favoriteProducts}
+              artisans={artisans}
+              products={products}
+              notifications={notifications}
+              reviews={reviews}
+              onLeaveReview={handleLeaveReview}
+              onMarkNotificationAsRead={handleMarkNotificationAsRead}
+              onLogout={handleLogout}
+            />
+          );
+        }
         return <OrderTracking productOrders={productOrders} customOrders={customOrders} onNavigate={navigateTo} justPlacedOrderId={justPlacedOrderId} />;
       case 'about': return <About />;
       case 'contact': return <Contact />;
