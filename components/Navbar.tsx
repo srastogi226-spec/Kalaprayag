@@ -62,27 +62,18 @@ const Navbar: React.FC<NavbarProps> = ({
     };
   }, [isLangOpen]);
 
-  // Desktop shows only core links — Custom Studio & Contact are in the menu drawer
+  // Desktop shows only core links
   const desktopLinks = [
-    { name: 'Shop', id: 'shop' },
-    { name: 'Workshops', id: 'workshops' },
-    { name: 'Journal', id: 'journal' },
-    { name: 'Makers', id: 'artisan-profiles' },
     { name: 'About', id: 'about' },
   ];
 
   // Full list for the hamburger drawer
   const navLinks = [
     { name: 'Home', id: 'home' },
-    { name: 'Shop', id: 'shop' },
-    { name: 'Workshops', id: 'workshops' },
-    { name: 'Journal', id: 'journal' },
-    { name: 'Custom Studio', id: 'studio' },
-    { name: 'Makers', id: 'artisan-profiles' },
     { name: 'About', id: 'about' },
-    { name: 'Contact', id: 'contact' },
     { name: 'My Orders', id: 'track-order' },
   ];
+
 
   const handleMobileNavigate = (id: string) => {
     onNavigate(id);

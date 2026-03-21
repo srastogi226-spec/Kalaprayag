@@ -759,26 +759,53 @@ const AppContent: React.FC = () => {
       case 'artisan-login':
         if (currentUser) {
           if (loggedInArtisan) return renderArtisanDashboard();
+          // Non-artisan user tried to log in via the artisan login page
           return (
-            <CollectorDashboard
-              userEmail={currentUser.email || ''}
-              userId={currentUser.uid}
-              customOrders={customOrders}
-              productOrders={productOrders}
-              classBookings={classBookings}
-              favoriteArtisans={favoriteArtisans}
-              favoriteProducts={favoriteProducts}
-              artisans={artisans}
-              products={products}
-              notifications={notifications}
-              reviews={reviews}
-              onLeaveReview={handleLeaveReview}
-              onMarkNotificationAsRead={handleMarkNotificationAsRead}
-              onLogout={handleLogout}
-            />
+            <div className="min-h-screen pt-32 pb-24 px-6 flex items-center justify-center bg-[#FAF9F6]">
+              <div className="w-full max-w-md">
+                <div className="text-center mb-10">
+                  <div className="w-16 h-16 bg-amber-50 border border-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] uppercase tracking-[0.4em] text-[#8B735B] font-bold">Artisan Portal</span>
+                  <h1 className="text-3xl serif mt-3 mb-2">No Artisan Account Found</h1>
+                  <p className="text-[#999] text-sm font-light">
+                    Signed in as <strong className="text-[#2C2C2C]">{currentUser.email}</strong>
+                  </p>
+                </div>
+
+                <div className="bg-white border border-[#E5E5E5] p-8 shadow-sm space-y-5">
+                  <div className="bg-amber-50 border border-amber-100 text-amber-800 text-xs p-4 leading-relaxed text-center rounded-sm">
+                    <p className="font-bold mb-1">This account is not registered as an artisan.</p>
+                    <p className="text-amber-700">Artisan accounts are created by our team after reviewing your application. Please apply first, and we will set up your account within 3–5 business days.</p>
+                  </div>
+
+                  <button
+                    onClick={() => { handleLogout(); navigateTo('artisan-join'); }}
+                    className="w-full bg-[#2C2C2C] text-white py-4 text-xs uppercase tracking-[0.3em] font-bold hover:bg-[#8B735B] transition-all"
+                  >
+                    Apply as an Artisan →
+                  </button>
+
+                  <button
+                    onClick={handleLogout}
+                    className="w-full border border-[#E5E5E5] py-3 text-xs uppercase tracking-widest font-bold text-[#999] hover:border-[#2C2C2C] hover:text-[#2C2C2C] transition-all"
+                  >
+                    Sign Out & Try Another Account
+                  </button>
+                </div>
+
+                <p className="text-center text-[10px] text-[#CCC] mt-6 uppercase tracking-widest">
+                  Already applied? Contact us — kalaprayag.com
+                </p>
+              </div>
+            </div>
           );
         }
         return <ArtisanLogin onSuccess={() => navigateTo('artisan-dashboard')} onJoin={() => navigateTo('artisan-join')} />;
+
       case 'artisan-dashboard':
         if (loggedInArtisan) return renderArtisanDashboard();
         if (currentUser) {

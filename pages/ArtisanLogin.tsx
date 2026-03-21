@@ -130,10 +130,24 @@ const ArtisanLogin: React.FC<ArtisanLoginProps> = ({ onSuccess, onJoin }) => {
         <div className="bg-white border border-[#E5E5E5] p-8 shadow-sm space-y-5">
 
           {error && (
-            <div className="bg-red-50 border border-red-100 text-red-700 text-xs p-3 leading-relaxed text-center mb-6">
-              {error}
-            </div>
+            error.toLowerCase().includes('no artisan account') || error.toLowerCase().includes('please apply') ? (
+              <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs p-4 leading-relaxed text-center mb-2 rounded-sm">
+                <p className="font-bold mb-1">⚠️ No artisan account found</p>
+                <p className="text-amber-700 mb-3">{error}</p>
+                <button
+                  onClick={onJoin}
+                  className="text-xs font-bold uppercase tracking-widest text-[#8B735B] border-b border-[#8B735B] pb-0.5 hover:text-[#2C2C2C] hover:border-[#2C2C2C] transition-all"
+                >
+                  Apply as an Artisan →
+                </button>
+              </div>
+            ) : (
+              <div className="bg-red-50 border border-red-100 text-red-700 text-xs p-3 leading-relaxed text-center mb-2 rounded-sm">
+                {error}
+              </div>
+            )
           )}
+
 
           {/* Google Sign-In */}
           <button

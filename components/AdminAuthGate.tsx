@@ -4,11 +4,17 @@ interface AdminAuthGateProps {
   children: React.ReactNode;
 }
 
-const GOOGLE_CLIENT_ID = '1031337559270-slf7h9pojusijm2q9rt8n2c9nsj1t6f8.apps.googleusercontent.com';
+// ── Config (never hardcode secrets here) ─────────────────────────────────────
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const ALLOWED_EMAILS = ['srastogi226@gmail.com', 'srastogi795@gmail.com'];
-const ADMIN_PASSWORD = 'Shiv@1994';
 const SESSION_KEY = 'kp_admin_session';
 const SESSION_DURATION = 4 * 60 * 60 * 1000;
+
+// ── Brute-force lockout state ─────────────────────────────────────────────────
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+let failedAttempts = 0;
+let lockoutUntil = 0;
 
 declare global {
   interface Window {
@@ -83,12 +89,33 @@ const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ children }) => {
     }
   }, [googleReady, authMethod]);
 
-  // Google callback — decode JWT to get email
-  const handleGoogleResponse = (response: { credential: string }) => {
+  // Google callback — verify JWT with Google's token API (not just decode)
+  const handleGoogleResponse = async (response: { credential: string }) => {
     try {
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      // Verify the token server-side via Google's tokeninfo endpoint
+      const verifyRes = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${response.credential}`
+      );
+      if (!verifyRes.ok) {
+        setError('Google sign-in verification failed. Please try again.');
+        return;
+      }
+      const payload = await verifyRes.json();
+
+      // Extra checks: audience must match our client ID, token must not be expired
+      if (payload.aud !== GOOGLE_CLIENT_ID) {
+        setError('Token audience mismatch. Access denied.');
+        return;
+      }
+      if (payload.exp && Date.now() / 1000 > Number(payload.exp)) {
+        setError('Google token expired. Please sign in again.');
+        return;
+      }
+
       const email: string = payload.email || '';
       if (ALLOWED_EMAILS.includes(email)) {
+        failedAttempts = 0;
+        lockoutUntil = 0;
         saveSession();
         setError('');
       } else {
@@ -99,15 +126,38 @@ const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ children }) => {
     }
   };
 
-  // Password login
-  const handlePasswordLogin = (e: React.FormEvent) => {
+  // Password login with brute-force protection
+  const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check lockout
+    if (Date.now() < lockoutUntil) {
+      const minsLeft = Math.ceil((lockoutUntil - Date.now()) / 60000);
+      setError(`Too many failed attempts. Try again in ${minsLeft} minute${minsLeft > 1 ? 's' : ''}.`);
+      return;
+    }
+
     const entered = inputRef.current?.value || '';
     if (!entered.trim()) { setError('Please enter the password.'); return; }
-    if (entered === ADMIN_PASSWORD) {
+
+    // Get the admin password hash from env (VITE_ADMIN_PASSWORD_HASH)
+    // This is a base64 of a simple comparison — for full security, use server-side check
+    const expectedHash = import.meta.env.VITE_ADMIN_PASSWORD_HASH || '';
+    const enteredHash = btoa(entered); // simple encoding check
+
+    if (expectedHash && enteredHash === expectedHash) {
+      failedAttempts = 0;
+      lockoutUntil = 0;
       saveSession();
     } else {
-      setError('Incorrect password.');
+      failedAttempts++;
+      if (failedAttempts >= MAX_ATTEMPTS) {
+        lockoutUntil = Date.now() + LOCKOUT_MS;
+        failedAttempts = 0;
+        setError(`Too many failed attempts. Locked out for 15 minutes.`);
+      } else {
+        setError(`Incorrect password. ${MAX_ATTEMPTS - failedAttempts} attempt${MAX_ATTEMPTS - failedAttempts !== 1 ? 's' : ''} remaining.`);
+      }
       if (inputRef.current) inputRef.current.value = '';
     }
   };
