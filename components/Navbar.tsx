@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { LANGUAGES } from '../services/sarvamTranslate';
 
 interface NavbarProps {
   onNavigate: (page: string) => void;
@@ -19,12 +17,6 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLangOpen, setIsLangOpen] = useState(false);
-  const langRef = useRef<HTMLDivElement>(null);
-
-  const { language, setLanguage, isTranslating } = useLanguage();
-  const currentLang = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
-
   const isHome = currentPage === 'home';
 
   useEffect(() => {
@@ -42,25 +34,6 @@ const Navbar: React.FC<NavbarProps> = ({
       document.body.style.overflow = 'unset';
     }
   }, [isMenuOpen]);
-
-  // Close dropdown on outside click or ESC
-  useEffect(() => {
-    if (!isLangOpen) return;
-    const handleClick = (e: MouseEvent) => {
-      if (langRef.current && !langRef.current.contains(e.target as Node)) {
-        setIsLangOpen(false);
-      }
-    };
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsLangOpen(false);
-    };
-    document.addEventListener('mousedown', handleClick);
-    document.addEventListener('keydown', handleEsc);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-      document.removeEventListener('keydown', handleEsc);
-    };
-  }, [isLangOpen]);
 
   // Desktop shows only core links — Custom Studio & Contact are in the menu drawer
   const desktopLinks = [
@@ -141,75 +114,6 @@ const Navbar: React.FC<NavbarProps> = ({
           {/* Actions */}
           <div className="flex items-center gap-2 md:gap-4 relative z-[110]">
 
-            {/* ── Language Switcher — compact icon+name ── */}
-            <div ref={langRef} className="relative hidden sm:block">
-              <button
-                onClick={() => setIsLangOpen(p => !p)}
-                className={`flex items-center gap-1 px-2.5 py-1 text-[9px] uppercase tracking-widest font-bold transition-all duration-300 ${isLightMode
-                  ? 'bg-[#2C2C2C] text-white hover:bg-[#8B735B]'
-                  : 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
-                  }`}
-                title="Change language"
-              >
-                🌐
-                <span className="max-w-[52px] truncate">{currentLang.native}</span>
-                {isTranslating ? (
-                  <svg className="w-2.5 h-2.5 animate-spin flex-shrink-0" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
-                ) : (
-                  <svg className={`w-2 h-2 flex-shrink-0 transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                )}
-              </button>
-
-              {/* Dropdown */}
-              {isLangOpen && (
-                <div className="absolute top-full right-0 mt-2 w-72 bg-white border border-[#E5E5E5] shadow-2xl z-[200] animate-in fade-in slide-in-from-top-2 duration-200">
-                  {/* Header */}
-                  <div className="px-4 pt-4 pb-3 border-b border-[#F0F0F0]">
-                    <p className="text-[9px] uppercase tracking-[0.35em] text-[#8B735B] font-bold">Choose Your Language</p>
-                  </div>
-
-                  {/* Language Grid */}
-                  <div className="grid grid-cols-2 p-2 gap-0.5 max-h-72 overflow-y-auto">
-                    {LANGUAGES.map(lang => (
-                      <button
-                        key={lang.code}
-                        onClick={() => {
-                          setLanguage(lang.code);
-                          setIsLangOpen(false);
-                        }}
-                        className={`flex items-center justify-between px-3 py-2.5 text-left transition-colors group ${language === lang.code
-                          ? 'bg-[#FAF9F6]'
-                          : 'hover:bg-[#FAF9F6]'
-                          }`}
-                      >
-                        <div>
-                          <p className={`text-sm font-semibold leading-tight ${language === lang.code ? 'text-[#8B735B]' : 'text-[#2C2C2C]'}`}>
-                            {lang.native}
-                          </p>
-                          <p className="text-[9px] uppercase tracking-widest text-[#999] mt-0.5">{lang.name}</p>
-                        </div>
-                        {language === lang.code && (
-                          <svg className="w-3.5 h-3.5 text-[#8B735B] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="px-4 py-2.5 border-t border-[#F0F0F0] bg-[#FAF9F6]">
-                    <p className="text-[8px] uppercase tracking-[0.2em] text-[#BBB] text-center">Powered by Sarvam AI</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
             {/* Cart Icon */}
             <button
               onClick={onToggleCart}
@@ -271,27 +175,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 {link.name}
               </button>
             ))}
-          </div>
-
-          <div className={`w-12 h-[1px] bg-white/20 transition-all duration-1000 delay-500 ${isMenuOpen ? 'scale-x-100' : 'scale-x-0'}`}></div>
-
-          {/* Mobile Language Picker */}
-          <div className={`transition-all duration-700 delay-[550ms] ${isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <p className="text-[8px] uppercase tracking-[0.35em] text-white/40 text-center mb-3">Language</p>
-            <div className="flex flex-wrap justify-center gap-2 max-w-xs">
-              {LANGUAGES.map(lang => (
-                <button
-                  key={lang.code}
-                  onClick={() => { setLanguage(lang.code); setIsMenuOpen(false); }}
-                  className={`px-3 py-1.5 text-[10px] font-medium transition-all ${language === lang.code
-                    ? 'bg-[#8B735B] text-white'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'
-                    }`}
-                >
-                  {lang.native}
-                </button>
-              ))}
-            </div>
           </div>
 
           <div className={`w-12 h-[1px] bg-white/20 transition-all duration-1000 delay-500 ${isMenuOpen ? 'scale-x-100' : 'scale-x-0'}`}></div>
