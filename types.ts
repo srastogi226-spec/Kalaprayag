@@ -218,6 +218,7 @@ export interface ProductOrder {
   shippingStatus?: string;
   shippingMethod?: string;
   shippingCost?: number;
+  gstAmount?: number;
   estimatedDelivery?: string;
   artisanId?: string;
   artisanName?: string;

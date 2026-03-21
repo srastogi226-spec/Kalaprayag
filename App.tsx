@@ -959,7 +959,7 @@ const AppContent: React.FC = () => {
             {cart.length > 0 && (
               <div className="p-8 border-t border-[#E5E5E5] space-y-4">
                 <div className="flex justify-between text-sm font-bold">
-                  <span className="uppercase tracking-widest">Total</span>
+                  <span className="uppercase tracking-widest">Subtotal (excl. GST)</span>
                   <span className="text-lg serif">₹ {cartTotal.toLocaleString()}</span>
                 </div>
                 <button onClick={() => { setShowCart(false); setShowCheckout(true); }} className="w-full bg-[#2C2C2C] text-white py-4 text-xs uppercase tracking-[0.3em] font-bold hover:bg-[#8B735B] transition-all">
@@ -1040,15 +1040,23 @@ const AppContent: React.FC = () => {
                       <span className="font-medium">₹ {(item.price * item.quantity).toLocaleString()}</span>
                     </div>
                   ))}
+                  <div className="border-t border-[#E5E5E5] pt-2 mt-2 flex justify-between text-sm font-medium">
+                      <span className="text-[#4A4A4A]">Subtotal</span>
+                      <span>₹ {cartTotal.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#4A4A4A]">GST (18%)</span>
+                    <span className="font-medium">₹ {Math.round(cartTotal * 0.18).toLocaleString()}</span>
+                  </div>
                   {shippingCost > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="text-[#4A4A4A]">Shipping ({shippingMethod === 'express' ? 'Express' : 'Standard'})</span>
                       <span className="font-medium">₹ {shippingCost.toLocaleString()}</span>
                     </div>
                   )}
-                  <div className="border-t border-[#E5E5E5] pt-2 flex justify-between font-bold">
+                  <div className="border-t border-[#E5E5E5] pt-2 mt-2 flex justify-between font-bold">
                     <span className="text-xs uppercase tracking-widest">Total</span>
-                    <span>₹ {(cartTotal + shippingCost).toLocaleString()}</span>
+                    <span>₹ {(cartTotal + Math.round(cartTotal * 0.18) + shippingCost).toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -1156,9 +1164,10 @@ const AppContent: React.FC = () => {
                   onClick={() => {
                     setCheckoutError('');
                     setCheckoutProcessing(true);
-                    const totalWithShipping = cartTotal + shippingCost;
+                    const currentGst = Math.round(cartTotal * 0.18);
+                    const totalWithShippingAndGst = cartTotal + currentGst + shippingCost;
                     openRazorpay({
-                      amount: totalWithShipping,
+                      amount: totalWithShippingAndGst,
                       description: `Kala Prayag Order — ${cart.length} item${cart.length > 1 ? 's' : ''}`,
                       customerName: checkoutForm.name,
                       customerEmail: checkoutForm.email,
@@ -1176,11 +1185,12 @@ const AppContent: React.FC = () => {
                           state: checkoutForm.state,
                           pincode: checkoutForm.pincode,
                           paymentMethod: 'Razorpay',
-                          totalAmount: totalWithShipping,
+                          totalAmount: totalWithShippingAndGst,
                           status: 'confirmed',
                           paymentId: response.razorpay_payment_id,
                           shippingMethod: shippingMethod === 'express' ? 'Express' : 'Standard',
                           shippingCost: shippingCost,
+                          gstAmount: currentGst,
                           estimatedDelivery: shippingCheck ? getEstimatedDelivery(shippingCheck.deliveryDays, shippingMethod === 'express') : '',
                           createdAt: new Date().toISOString(),
                         };
@@ -1198,7 +1208,7 @@ const AppContent: React.FC = () => {
                             city: checkoutForm.city,
                             state: checkoutForm.state,
                             pincode: checkoutForm.pincode,
-                            amount: totalWithShipping,
+                            amount: totalWithShippingAndGst,
                             weight: calculateWeight(cart),
                             items: cart.map(i => i.name).join(', '),
                             paymentMode: 'Prepaid',
@@ -1237,7 +1247,7 @@ const AppContent: React.FC = () => {
                       </svg>
                       Processing...
                     </>
-                  ) : `Pay Now · ₹ ${(cartTotal + shippingCost).toLocaleString()}`}
+                  ) : `Pay Now · ₹ ${(cartTotal + Math.round(cartTotal * 0.18) + shippingCost).toLocaleString()}`}
                 </button>
               </div>
             )}
