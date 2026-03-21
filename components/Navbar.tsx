@@ -163,12 +163,12 @@ const Navbar: React.FC<NavbarProps> = ({
       >
         <div className="flex flex-col min-h-full items-center justify-center px-10 pt-32 pb-16 space-y-12">
           {/* Main Links */}
-          <div className="flex flex-col items-center space-y-6 md:space-y-10">
+          <div className="grid grid-cols-2 gap-y-8 gap-x-6 md:gap-y-12 md:gap-x-16 text-center w-full max-w-2xl mx-auto">
             {navLinks.map((link, idx) => (
               <button
                 key={link.id}
                 onClick={() => handleMobileNavigate(link.id)}
-                className={`text-3xl md:text-6xl serif tracking-wider transition-all duration-700 transform ${isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+                className={`text-2xl md:text-5xl serif tracking-wider transition-all duration-700 transform ${isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
                   } ${currentPage === link.id ? 'text-[#8B735B]' : 'text-white hover:text-[#8B735B]'}`}
                 style={{ transitionDelay: `${idx * 100}ms` }}
               >
