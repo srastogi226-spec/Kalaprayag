@@ -85,9 +85,6 @@ const ArtisanLogin: React.FC<ArtisanLoginProps> = ({ onSuccess, onJoin }) => {
       onSuccess(artisanData);
 
     } catch (err: any) {
-      // Always sign out on any failure
-      await signOut(auth).catch(() => {});
-
       if (err.code === 'auth/popup-closed-by-user') {
         setError('Google sign-in was cancelled.');
       } else if (err.message?.startsWith('PENDING:')) {
