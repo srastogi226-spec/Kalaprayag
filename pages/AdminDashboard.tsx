@@ -73,7 +73,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleAdminLogout = () => {
-    localStorage.removeItem('kp_admin_auth_session');
+    localStorage.removeItem('kp_admin_session');
     window.location.reload();
   };
 
