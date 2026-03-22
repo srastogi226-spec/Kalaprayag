@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { Artisan, Product, Workshop, Review, Message, CartItem } from '../types';
+import ReviewForm from '../components/ReviewForm';
+import ReviewList from '../components/ReviewList';
 
 interface ArtisanProfileProps {
   artisan: Artisan;
@@ -146,7 +148,11 @@ const ArtisanProfile: React.FC<ArtisanProfileProps> = ({
                 <img src={p.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={p.name} />
               </div>
               <h3 className="serif text-lg">{p.name}</h3>
-              <p className="text-xs text-[#999] uppercase tracking-widest">₹ {p.price.toLocaleString()}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-[#999] line-through text-xs">₹ {Math.round(p.price * 1.10).toLocaleString()}</p>
+                <p className="text-[#2C2C2C] font-bold text-xs">₹ {p.price.toLocaleString()}</p>
+                <span className="text-[#8B735B] text-[8px] uppercase tracking-widest font-bold">10% OFF</span>
+              </div>
             </div>
           ))}
         </div>
@@ -217,24 +223,15 @@ const ArtisanProfile: React.FC<ArtisanProfileProps> = ({
 
       {/* Reviews Tab */}
       {activeTab === 'reviews' && (
-        <div className="mb-24 animate-in fade-in duration-300">
-          {reviews.length === 0 ? (
-            <p className="text-center py-20 text-[#999] italic serif text-xl">No reviews yet.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              {reviews.map(r => (
-                <div key={r.id} className="space-y-4">
-                  <div className="flex text-amber-500">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className={`w-3 h-3 ${i < r.rating ? 'fill-current' : 'fill-gray-200'}`} viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" /></svg>
-                    ))}
-                  </div>
-                  <p className="text-sm font-light italic leading-relaxed text-[#4A4A4A]">"{r.comment}"</p>
-                  <p className="text-[10px] uppercase tracking-widest font-bold">— {r.authorName}</p>
-                </div>
-              ))}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-20 animate-in fade-in duration-300">
+          <div className="lg:col-span-7">
+            <ReviewList targetId={artisan.id} targetType="artist" />
+          </div>
+          <div className="lg:col-span-5">
+            <div className="bg-white border border-[#F0F0F0] p-10 shadow-sm">
+              <ReviewForm targetId={artisan.id} targetType="artist" />
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

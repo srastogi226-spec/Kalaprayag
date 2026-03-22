@@ -90,11 +90,13 @@ export interface Workshop {
 
 export interface Review {
   id: string;
-  targetId: string; // Could be Product ID, Workshop ID, or Artisan ID
-  authorName: string;
-  rating: number;
+  targetId: string;         // productId or artisanId
+  targetType: 'product' | 'artist';
+  userId: string;
+  userName: string;
+  rating: number;           // 1 to 5
   comment: string;
-  date: string;
+  createdAt: any;           // Firestore Timestamp
   status: 'pending' | 'approved';
 }
 

@@ -7,10 +7,10 @@ interface ReviewModalProps {
     onClose: () => void;
     onSubmit: (review: Partial<Review>) => void;
     targetId: string;
-    authorName: string;
+    userName: string;
 }
 
-const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, onSubmit, targetId, authorName }) => {
+const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, onSubmit, targetId, userName }) => {
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState('');
     const [hoverRating, setHoverRating] = useState(0);
@@ -22,11 +22,11 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, onSubmit, ta
         onSubmit({
             id: Math.random().toString(36).substr(2, 9),
             targetId,
-            authorName,
+            userName,
             rating,
             comment,
             status: 'pending',
-            date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+            createdAt: new Date().toISOString() // Fallback string, backend usually sets serverTimestamp()
         });
         setComment('');
         setRating(5);

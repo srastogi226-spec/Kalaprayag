@@ -1211,8 +1211,10 @@ const ArtisanDashboard: React.FC<ArtisanDashboardProps> = ({
                 <div key={r.id} className="bg-white p-8 border border-[#E5E5E5] shadow-sm space-y-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-semibold text-sm">{r.authorName}</p>
-                      <p className="text-[10px] text-[#999] uppercase tracking-widest">{r.date}</p>
+                      <p className="font-semibold text-sm">{r.userName}</p>
+                      <p className="text-[10px] text-[#999] uppercase tracking-widest">
+                        {r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString() : r.createdAt || 'Recent'}
+                      </p>
                     </div>
                     <div className="flex text-amber-500">
                       {[...Array(5)].map((_, i) => (

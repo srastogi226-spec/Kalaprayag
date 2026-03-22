@@ -67,7 +67,7 @@ const AppContent: React.FC = () => {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData | null>(null);
   const [reviewTargetId, setReviewTargetId] = useState('');
-  const [reviewAuthorName, setReviewAuthorName] = useState('');
+  const [reviewUserName, setReviewUserName] = useState('');
 
   // ── Cart & Purchase state ──────────────────────────────────────────────
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -442,9 +442,9 @@ const AppContent: React.FC = () => {
       .catch(err => alert("Error saving booking: " + err.message));
   };
 
-  const handleLeaveReview = (targetId: string, authorName: string) => {
+  const handleLeaveReview = (targetId: string, userName: string) => {
     setReviewTargetId(targetId);
-    setReviewAuthorName(authorName);
+    setReviewUserName(userName);
     setIsReviewModalOpen(true);
   };
 
@@ -891,7 +891,7 @@ const AppContent: React.FC = () => {
         onClose={() => setIsReviewModalOpen(false)}
         onSubmit={handleSubmitReview}
         targetId={reviewTargetId}
-        authorName={reviewAuthorName}
+        userName={reviewUserName}
       />
 
       <InvoiceModal
@@ -950,7 +950,13 @@ const AppContent: React.FC = () => {
                           +
                         </button>
                       </div>
-                      <p className="text-sm font-bold text-[#2C2C2C]">₹ {(item.price * item.quantity).toLocaleString()}</p>
+                      <div className="text-right">
+                        <div className="flex items-center justify-end gap-1.5 mb-1">
+                          <span className="text-[#999] line-through text-[10px]">₹ {Math.round(item.price * 1.10 * item.quantity).toLocaleString()}</span>
+                          <span className="text-[#8B735B] text-[8px] uppercase tracking-widest font-bold">10% OFF</span>
+                        </div>
+                        <p className="text-sm font-bold text-[#2C2C2C]">₹ {(item.price * item.quantity).toLocaleString()}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1035,9 +1041,15 @@ const AppContent: React.FC = () => {
                 <div className="bg-[#FAF9F6] p-4 mb-8 space-y-2">
                   <p className="text-xs uppercase tracking-widest font-bold text-[#999] mb-3">Order Summary</p>
                   {cart.map((item, i) => (
-                    <div key={i} className="flex justify-between text-sm">
-                      <span className="text-[#4A4A4A]">{item.name} × {item.quantity}</span>
-                      <span className="font-medium">₹ {(item.price * item.quantity).toLocaleString()}</span>
+                    <div key={i} className="flex justify-between items-start text-sm py-1">
+                      <div className="flex flex-col">
+                        <span className="text-[#4A4A4A]">{item.name} × {item.quantity}</span>
+                        <span className="text-[9px] uppercase tracking-widest text-[#8B735B] font-bold">10% OFF Included</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[#999] line-through text-[10px]">₹ {Math.round(item.price * 1.10 * item.quantity).toLocaleString()}</p>
+                        <p className="font-bold">₹ {(item.price * item.quantity).toLocaleString()}</p>
+                      </div>
                     </div>
                   ))}
                   <div className="border-t border-[#E5E5E5] pt-2 mt-2 flex justify-between text-sm font-medium">

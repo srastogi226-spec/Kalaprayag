@@ -215,8 +215,10 @@ const Home: React.FC<HomeProps> = ({ products, onViewProduct, onNavigate, artisa
                 <p className="text-[8px] uppercase tracking-widest text-[#8B735B] font-bold">{product.category}</p>
                 <div className="price-container">
                   <div className="price-stack">
-                    <div className="price-item">
-                      <p className="text-sm text-[#1A1A1A] serif">₹ {product.price.toLocaleString()}</p>
+                    <div className="price-item flex items-center gap-2">
+                      <p className="text-[#999] line-through text-xs">₹ {Math.round(product.price * 1.10).toLocaleString()}</p>
+                      <p className="text-[#2C2C2C] font-bold text-sm">₹ {product.price.toLocaleString()}</p>
+                      <span className="text-[#8B735B] text-[9px] uppercase tracking-widest font-bold">10% OFF</span>
                     </div>
                     <div
                       className="price-item cursor-pointer"

@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Product, CartItem, ProductOrder } from '../types';
+import { Product, CartItem } from '../types';
+import ReviewForm from '../components/ReviewForm';
+import ReviewList from '../components/ReviewList';
+import WishlistButton from '../components/WishlistButton';
 interface ProductDetailProps {
   product: Product;
   onBack: () => void;
@@ -119,8 +122,15 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, cart, on
         {/* Info */}
         <div>
           <span className="text-xs uppercase tracking-[0.2em] text-[#8B735B] mb-2 block">{product.category}</span>
-          <h1 className="text-5xl serif mb-6">{product.name}</h1>
-          <p className="text-2xl text-[#2C2C2C] mb-8">₹ {product.price.toLocaleString()}</p>
+          <div className="flex justify-between items-start mb-6">
+            <h1 className="text-5xl serif">{product.name}</h1>
+            <WishlistButton productId={product.id} variant="outline" />
+          </div>
+          <div className="flex items-center gap-3 mb-8">
+            <p className="text-[#999] line-through text-sm">₹ {Math.round(product.price * 1.10).toLocaleString()}</p>
+            <p className="text-2xl text-[#2C2C2C] font-bold">₹ {product.price.toLocaleString()}</p>
+            <span className="text-[#8B735B] text-[9px] uppercase tracking-widest font-bold bg-[#FAF9F6] px-2 py-1">10% OFF</span>
+          </div>
           <div className="prose prose-sm text-[#4A4A4A] max-w-none mb-10 leading-relaxed font-light">
             <p>{product.description}</p>
           </div>
@@ -191,6 +201,19 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, cart, on
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    <div className="border-t border-[#F0F0F0] mt-24 pt-24 pb-32">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-20">
+          <div className="lg:col-span-7">
+            <h2 className="text-4xl serif mb-10">Artisan Reviews</h2>
+            <ReviewList targetId={product.id} targetType="product" />
+          </div>
+          <div className="lg:col-span-5">
+            <div className="sticky top-32 bg-white border border-[#F0F0F0] p-10 shadow-sm">
+              <ReviewForm targetId={product.id} targetType="product" />
             </div>
           </div>
         </div>

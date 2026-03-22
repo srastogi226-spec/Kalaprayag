@@ -1414,7 +1414,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {pendingReviews.map(r => (
             <div key={r.id} className="bg-white p-6 border border-gray-100 shadow-sm space-y-4">
               <div className="flex justify-between">
-                <div><p className="text-sm font-bold">{r.authorName}</p><p className="text-[10px] text-gray-400">{r.date}</p></div>
+                                <div>
+                  <p className="text-sm font-bold">{r.userName}</p>
+                  <p className="text-[10px] text-gray-400">
+                    {r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString() : r.createdAt || 'Recent'}
+                  </p>
+                </div>
                 <div className="flex text-amber-500">
                   {[...Array(r.rating)].map((_, i) => <svg key={i} className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" /></svg>)}
                 </div>

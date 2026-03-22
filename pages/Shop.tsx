@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Product, Category, CartItem } from '../types';
 import { CATEGORIES } from '../constants.tsx';
 import { useTranslate } from '../hooks/useTranslate';
+import WishlistButton from '../components/WishlistButton';
 
 interface ShopProps {
   products: Product[];
@@ -160,14 +161,20 @@ const Shop: React.FC<ShopProps> = ({ products, onViewProduct, onAddToCart, onTog
                       alt={product.name}
                     />
                   )}
+                  {/* Wishlist Button */}
+                  <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <WishlistButton productId={product.id} variant="minimal" />
+                  </div>
                 </div>
                 <div>
                   <h3 className="text-sm serif mb-0.5 group-hover:text-[#8B735B] transition-colors line-clamp-1">{t(product.name)}</h3>
                   <p className="text-[9px] uppercase tracking-widest text-[#999] mb-1.5">{t(product.category)}</p>
                   <div className="price-container">
                     <div className="price-stack">
-                      <div className="price-item">
-                        <p className="text-sm text-[#2C2C2C] font-medium">₹ {product.price.toLocaleString()}</p>
+                      <div className="price-item flex items-center gap-2">
+                        <p className="text-[#999] line-through text-xs">₹ {Math.round(product.price * 1.10).toLocaleString()}</p>
+                        <p className="text-[#2C2C2C] font-bold text-sm">₹ {product.price.toLocaleString()}</p>
+                        <span className="text-[#8B735B] text-[9px] uppercase tracking-widest font-bold">10% OFF</span>
                       </div>
                       <div
                         className="price-item cursor-pointer"

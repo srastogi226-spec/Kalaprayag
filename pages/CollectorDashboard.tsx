@@ -336,7 +336,11 @@ const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
                                             </div>
                                         </div>
                                         <h4 className="serif text-lg">{p.name}</h4>
-                                        <p className="text-xs text-[#999] uppercase tracking-widest">₹ {p.price.toLocaleString()}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <p className="text-[#999] line-through text-[10px]">₹ {Math.round(p.price * 1.10).toLocaleString()}</p>
+                                            <p className="text-[#2C2C2C] font-bold text-xs">₹ {p.price.toLocaleString()}</p>
+                                            <span className="text-[#8B735B] text-[8px] uppercase tracking-widest font-bold">10% OFF</span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
