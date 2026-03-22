@@ -900,17 +900,25 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const isDashboardView = (
+    currentPage === 'admin' || 
+    (currentPage === 'artisan-dashboard' && loggedInArtisan) || 
+    (['track-order', 'wishlist'].includes(currentPage) && currentUser)
+  );
+
   return (
     <div className="min-h-screen flex flex-col selection:bg-[#8B735B]/30 selection:text-[#2C2C2C]">
-      <Navbar
-        onNavigate={navigateTo}
-        currentPage={currentPage}
-        unreadNotificationsCount={notifications.filter(n => n.userId === (currentUser?.uid || '') && n.status === 'unread').length}
-        cartCount={cartCount}
-        onToggleCart={() => setShowCart(true)}
-      />
+      {!isDashboardView && (
+        <Navbar
+          onNavigate={navigateTo}
+          currentPage={currentPage}
+          unreadNotificationsCount={notifications.filter(n => n.userId === (currentUser?.uid || '') && n.status === 'unread').length}
+          cartCount={cartCount}
+          onToggleCart={() => setShowCart(true)}
+        />
+      )}
       <main className="flex-grow">{renderPage()}</main>
-      <Footer onNavigate={navigateTo} />
+      {!isDashboardView && <Footer onNavigate={navigateTo} />}
 
       <ReviewModal
         isOpen={isReviewModalOpen}
