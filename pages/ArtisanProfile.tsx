@@ -151,7 +151,6 @@ const ArtisanProfile: React.FC<ArtisanProfileProps> = ({
               <div className="flex items-center gap-2 mt-1">
                 <p className="text-[#999] line-through text-xs">₹ {Math.round(p.price * 1.10).toLocaleString()}</p>
                 <p className="text-[#2C2C2C] font-bold text-xs">₹ {p.price.toLocaleString()}</p>
-                <span className="text-[#8B735B] text-[8px] uppercase tracking-widest font-bold">10% OFF</span>
               </div>
             </div>
           ))}

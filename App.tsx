@@ -979,7 +979,6 @@ const AppContent: React.FC = () => {
                       <div className="text-right">
                         <div className="flex items-center justify-end gap-1.5 mb-1">
                           <span className="text-[#999] line-through text-[10px]">₹ {Math.round(item.price * 1.10 * item.quantity).toLocaleString()}</span>
-                          <span className="text-[#8B735B] text-[8px] uppercase tracking-widest font-bold">10% OFF</span>
                         </div>
                         <p className="text-sm font-bold text-[#2C2C2C]">₹ {(item.price * item.quantity).toLocaleString()}</p>
                       </div>
@@ -1070,7 +1069,6 @@ const AppContent: React.FC = () => {
                     <div key={i} className="flex justify-between items-start text-sm py-1">
                       <div className="flex flex-col">
                         <span className="text-[#4A4A4A]">{item.name} × {item.quantity}</span>
-                        <span className="text-[9px] uppercase tracking-widest text-[#8B735B] font-bold">10% OFF Included</span>
                       </div>
                       <div className="text-right">
                         <p className="text-[#999] line-through text-[10px]">₹ {Math.round(item.price * 1.10 * item.quantity).toLocaleString()}</p>

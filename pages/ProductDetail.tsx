@@ -129,7 +129,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, cart, on
           <div className="flex items-center gap-3 mb-8">
             <p className="text-[#999] line-through text-sm">₹ {Math.round(product.price * 1.10).toLocaleString()}</p>
             <p className="text-2xl text-[#2C2C2C] font-bold">₹ {product.price.toLocaleString()}</p>
-            <span className="text-[#8B735B] text-[9px] uppercase tracking-widest font-bold bg-[#FAF9F6] px-2 py-1">10% OFF</span>
           </div>
           <div className="prose prose-sm text-[#4A4A4A] max-w-none mb-10 leading-relaxed font-light">
             <p>{product.description}</p>
