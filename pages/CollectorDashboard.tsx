@@ -18,11 +18,12 @@ interface CollectorDashboardProps {
     onLeaveReview: (targetId: string, authorName: string) => void;
     onMarkNotificationAsRead: (id: string) => void;
     onLogout: () => void;
+    onNavigate?: (page: string) => void;
     initialTab?: 'overview' | 'orders' | 'workshops' | 'saved' | 'notifications';
 }
 
 const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
-    userEmail, userId, customOrders, productOrders, classBookings, favoriteArtisans, favoriteProducts, artisans, products, notifications, reviews, onLeaveReview, onMarkNotificationAsRead, onLogout, initialTab = 'overview'
+    userEmail, userId, customOrders, productOrders, classBookings, favoriteArtisans, favoriteProducts, artisans, products, notifications, reviews, onLeaveReview, onMarkNotificationAsRead, onLogout, onNavigate, initialTab = 'overview'
 }) => {
     const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'workshops' | 'saved' | 'notifications'>(initialTab);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -89,9 +90,14 @@ const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
                 }`}
             >
                 {/* Brand */}
-                <div className="px-7 pt-8 pb-5 border-b border-white/10">
-                    <p className="text-[9px] uppercase tracking-[0.35em] text-[#8B735B] font-bold mb-1">Collector Portal</p>
-                    <h1 className="text-[22px] text-[#FAF9F6] serif tracking-wide" style={{ fontFamily: "'Playfair Display', serif" }}>KALA PRAYAG</h1>
+                <div className="px-7 pt-8 pb-6 border-b border-white/10">
+                    <button 
+                      onClick={() => onNavigate?.('home')}
+                      className="text-left group block"
+                    >
+                      <p className="text-[9px] uppercase tracking-[0.35em] text-[#8B735B] font-bold mb-1 group-hover:text-white transition-colors">Collector Portal</p>
+                      <h1 className="text-[22px] text-[#FAF9F6] serif tracking-wide group-hover:text-[#8B735B] transition-colors" style={{ fontFamily: "'Playfair Display', serif" }}>KALA PRAYAG</h1>
+                    </button>
                 </div>
 
                 {/* Collector Profile Card */}
@@ -143,6 +149,24 @@ const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
                             </button>
                         );
                     })}
+
+                    <div className="mt-8 pt-4 border-t border-white/5">
+                        <p className="text-[9px] uppercase tracking-[0.25em] text-[#666] font-bold px-4 mb-3">Marketplace</p>
+                        <button
+                            onClick={() => onNavigate?.('shop')}
+                            className="group w-full flex items-center gap-3 px-4 py-2.5 text-[#999] hover:text-[#FAF9F6] hover:bg-white/5 transition-all"
+                        >
+                            <svg className="w-[16px] h-[16px] text-[#555] group-hover:text-[#8B735B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="square" strokeLinejoin="miter" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                            <span className="text-[10px] uppercase tracking-[0.2em]">Return to Shop</span>
+                        </button>
+                        <button
+                            onClick={() => onNavigate?.('workshops')}
+                            className="group w-full flex items-center gap-3 px-4 py-2.5 text-[#999] hover:text-[#FAF9F6] hover:bg-white/5 transition-all"
+                        >
+                            <svg className="w-[16px] h-[16px] text-[#555] group-hover:text-[#8B735B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="square" strokeLinejoin="miter" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span className="text-[10px] uppercase tracking-[0.2em]">Our Workshops</span>
+                        </button>
+                    </div>
                 </nav>
 
                 {/* Bottom section */}
@@ -172,7 +196,7 @@ const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
                             <path strokeLinecap="square" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
-                    <span className="text-[13px] text-[#FAF9F6] serif tracking-wide" style={{ fontFamily: "'Playfair Display', serif" }}>KALA PRAYAG</span>
+                    <button onClick={() => onNavigate?.('home')} className="text-[15px] text-[#FAF9F6] serif tracking-wide" style={{ fontFamily: "'Playfair Display', serif" }}>KALA PRAYAG</button>
                     <div className="flex items-center gap-2">
                         {unreadNotifs > 0 && (
                             <span className="bg-red-500 text-white text-[9px] font-bold min-w-[18px] h-[18px] flex items-center justify-center px-1">

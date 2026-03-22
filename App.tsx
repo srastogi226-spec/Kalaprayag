@@ -771,6 +771,7 @@ const AppContent: React.FC = () => {
               onLeaveReview={handleLeaveReview}
               onMarkNotificationAsRead={handleMarkNotificationAsRead}
               onLogout={handleLogout}
+              onNavigate={navigateTo}
             />
           );
         }
@@ -794,6 +795,7 @@ const AppContent: React.FC = () => {
               onLeaveReview={handleLeaveReview}
               onMarkNotificationAsRead={handleMarkNotificationAsRead}
               onLogout={handleLogout}
+              onNavigate={navigateTo}
             />
           );
         }
@@ -871,6 +873,7 @@ const AppContent: React.FC = () => {
               onLeaveReview={handleLeaveReview}
               onMarkNotificationAsRead={handleMarkNotificationAsRead}
               onLogout={handleLogout}
+              onNavigate={navigateTo}
             />
           );
         }
