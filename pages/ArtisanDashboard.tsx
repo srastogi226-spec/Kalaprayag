@@ -30,6 +30,7 @@ const ArtisanDashboard: React.FC<ArtisanDashboardProps> = ({
   artisan, products, workshops, customOrders, onAcceptOrder, reviews, onAddProduct, onAddWorkshop, onUpdateWorkshop, onUpdateArtisan, onUpdateProduct, onUpdateCustomOrder, onUpdateProductOrder, onLogout, productOrders = [], messages = [], onUpdateMessage, classBookings = [], notifications, onMarkNotificationAsRead, onMarkAllNotificationsAsRead
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'workshops' | 'messages' | 'orders' | 'reviews' | 'pricing' | 'profile' | 'notifications'>('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [orderTypeFilter, setOrderTypeFilter] = useState<'all' | 'shop' | 'custom'>('all');
   const [profileForm, setProfileForm] = useState({
@@ -322,47 +323,163 @@ const ArtisanDashboard: React.FC<ArtisanDashboardProps> = ({
       }
     }
   }, [activeTab, newOrdersCount, newProductOrdersCount]);
-  const tabs = ['overview', 'products', 'workshops', 'messages', 'orders', 'reviews', 'pricing', 'profile'];
+  const artisanTabs: { id: string; label: string; count: number; icon: React.ReactNode }[] = [
+    { id: 'overview', label: 'Overview', count: 0, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg> },
+    { id: 'products', label: 'Products', count: 0, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
+    { id: 'workshops', label: 'Workshops', count: 0, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
+    { id: 'orders', label: 'Orders', count: newOrdersCount + newProductOrdersCount, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg> },
+    { id: 'messages', label: 'Messages', count: unreadMessagesCount, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> },
+    { id: 'reviews', label: 'Reviews', count: 0, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg> },
+    { id: 'pricing', label: 'Pricing', count: 0, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+    { id: 'profile', label: 'Profile', count: 0, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
+  ];
+
+  const artisanTotalPending = artisanTabs.reduce((sum, t) => sum + t.count, 0);
 
   return (
-    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto animate-in fade-in duration-700">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 border-b border-gray-100 pb-8">
-        <div className="flex items-center gap-6">
-          <div className="w-20 h-20 rounded-full overflow-hidden border border-gray-200">
-            <img src={artisan.profilePhoto} className="w-full h-full object-cover" alt={artisan.name} />
+    <div className="flex min-h-screen bg-[#FAF9F6]">
+
+      {/* ═══ MOBILE OVERLAY ═══ */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* ═══ LEFT SIDEBAR ═══ */}
+      <aside
+        className={`fixed top-0 left-0 z-50 h-full w-[260px] bg-[#2C2C2C] flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Brand */}
+        <div className="px-7 pt-8 pb-5 border-b border-white/10">
+          <p className="text-[9px] uppercase tracking-[0.35em] text-[#8B735B] font-bold mb-1">Artisan Studio</p>
+          <h1 className="text-[22px] text-[#FAF9F6] serif tracking-wide" style={{ fontFamily: "'Playfair Display', serif" }}>KALA PRAYAG</h1>
+        </div>
+
+        {/* Artisan Profile Card */}
+        <div className="px-5 py-5 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 overflow-hidden border border-white/20 flex-shrink-0">
+              <img src={artisan.profilePhoto} className="w-full h-full object-cover" alt={artisan.name} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13px] text-[#FAF9F6] font-medium truncate">{artisan.brandName || artisan.name}</p>
+              <p className="text-[10px] text-[#666] truncate">{artisan.craftType} • {artisan.location}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl serif">{artisan.brandName || artisan.name}</h1>
-            <div className="flex items-center gap-3 mt-1">
-              <span className={`text-[10px] uppercase tracking-widest px-2 py-0.5 rounded border ${artisan.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-                {artisan.status} Status
+          <div className="mt-3 flex items-center gap-2">
+            <span className={`text-[8px] uppercase tracking-[0.15em] px-2 py-0.5 font-bold ${artisan.status === 'approved' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`}>
+              {artisan.status}
+            </span>
+            {artisan.rating > 0 && (
+              <span className="text-[10px] text-[#8B735B] flex items-center gap-1">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                {artisan.rating}
               </span>
-              <span className="text-xs text-[#999]">{artisan.craftType} • {artisan.location}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3 admin-sidebar-scroll">
+          <p className="text-[9px] uppercase tracking-[0.25em] text-[#666] font-bold px-4 mb-3">Navigation</p>
+          {artisanTabs.map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id as any); setSidebarOpen(false); }}
+                className={`group w-full flex items-center gap-3 px-4 py-3 mb-0.5 text-left transition-all duration-200 relative ${
+                  isActive
+                    ? 'bg-[#8B735B]/15 text-[#FAF9F6]'
+                    : 'text-[#999] hover:text-[#E5E5E5] hover:bg-white/5'
+                }`}
+              >
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-[#8B735B]" />
+                )}
+                <span className={`flex-shrink-0 transition-colors ${
+                  isActive ? 'text-[#8B735B]' : 'text-[#666] group-hover:text-[#999]'
+                }`}>
+                  {tab.icon}
+                </span>
+                <span className={`text-[11px] uppercase tracking-[0.15em] flex-1 ${
+                  isActive ? 'font-bold' : 'font-medium'
+                }`}>
+                  {tab.label}
+                </span>
+                {tab.count > 0 && (
+                  <span className="flex-shrink-0 bg-red-500 text-white text-[9px] font-bold min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Bottom section */}
+        <div className="px-4 py-5 border-t border-white/10 mt-auto">
+          {artisanTotalPending > 0 && (
+            <div className="mb-4 px-3 py-2.5 bg-amber-500/10 border border-amber-500/20">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-amber-400 font-bold flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-amber-400 animate-pulse" />
+                {artisanTotalPending} items need attention
+              </p>
+            </div>
+          )}
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-[#666] hover:text-red-400 transition-colors group"
+            >
+              <svg className="w-[18px] h-[18px] group-hover:text-red-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="square" strokeLinejoin="miter" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span className="text-[10px] uppercase tracking-[0.15em] font-medium">Switch Profile</span>
+            </button>
+          )}
+        </div>
+      </aside>
+
+      {/* ═══ MAIN CONTENT ═══ */}
+      <main className="flex-1 min-w-0 lg:ml-0">
+        {/* Mobile Top Bar */}
+        <div className="lg:hidden sticky top-0 z-30 bg-[#2C2C2C] px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="text-[#FAF9F6] p-1.5 hover:bg-white/10 transition-colors"
+            aria-label="Open menu"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="square" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <span className="text-[13px] text-[#FAF9F6] serif tracking-wide" style={{ fontFamily: "'Playfair Display', serif" }}>KALA PRAYAG</span>
+          <div className="flex items-center gap-2">
+            {artisanTotalPending > 0 && (
+              <span className="bg-red-500 text-white text-[9px] font-bold min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                {artisanTotalPending}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Content Header */}
+        <div className="px-6 lg:px-10 pt-8 pb-6 border-b border-[#E5E5E5] bg-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.25em] text-[#8B735B] font-bold mb-1">{artisanTabs.find(t => t.id === activeTab)?.label || 'Dashboard'}</p>
+              <h2 className="text-2xl lg:text-3xl serif text-[#2C2C2C]" style={{ fontFamily: "'Playfair Display', serif" }}>{artisan.brandName || artisan.name}</h2>
             </div>
           </div>
         </div>
-        <div className="flex flex-wrap gap-6 mt-6 md:mt-0">
-          {tabs.map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab as any)}
-              className={`text-xs uppercase tracking-widest pb-1 transition-all flex items-center gap-2 ${activeTab === tab ? 'border-b border-[#2C2C2C] font-semibold' : 'text-[#999] hover:text-[#2C2C2C]'}`}>
-              {tab}
-              {tab === 'orders' && (newOrdersCount + newProductOrdersCount > 0) && <span className="bg-red-500 text-white text-[8px] rounded-full w-4 h-4 flex items-center justify-center font-bold animate-pulse">{newOrdersCount + newProductOrdersCount}</span>}
-              {tab === 'messages' && unreadMessagesCount > 0 && <span className="bg-red-500 text-white text-[8px] rounded-full w-4 h-4 flex items-center justify-center font-bold">{unreadMessagesCount}</span>}
-              {tab === 'notifications' && unreadNotifsCount > 0 && <span className="bg-amber-600 text-white text-[8px] rounded-full w-4 h-4 flex items-center justify-center font-bold">{unreadNotifsCount}</span>}
-            </button>
-          ))}
-        </div>
-        {onLogout && (
-          <button
-            onClick={onLogout}
-            className="mt-6 md:mt-0 text-[9px] uppercase tracking-widest text-[#999] border border-[#E5E5E5] px-4 py-2 hover:border-red-300 hover:text-red-500 transition-all flex items-center gap-2"
-          >
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-            Switch Profile
-          </button>
-        )}
-      </div>
+
+        {/* Content Body */}
+        <div className="px-6 lg:px-10 py-8">
 
       {/* OVERVIEW TAB */}
       {activeTab === 'overview' && (
@@ -1727,8 +1844,8 @@ const ArtisanDashboard: React.FC<ArtisanDashboardProps> = ({
       )}
 
 
-      {/* FOOTER PADDING */}
-      <div className="h-24"></div>
+        </div>
+      </main>
     </div>
   );
 };
