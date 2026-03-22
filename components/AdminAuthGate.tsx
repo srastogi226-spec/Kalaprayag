@@ -141,8 +141,7 @@ const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ children }) => {
     if (!entered.trim()) { setError('Please enter the password.'); return; }
 
     // Get the admin password hash from env (VITE_ADMIN_PASSWORD_HASH)
-    // Fallback included temporarily in case Vercel env vars aren't set yet.
-    const expectedHash = import.meta.env.VITE_ADMIN_PASSWORD_HASH || 'U2hpdkAxOTk0';
+    const expectedHash = import.meta.env.VITE_ADMIN_PASSWORD_HASH;
     const enteredHash = btoa(entered); // simple encoding check
 
     if (expectedHash && enteredHash === expectedHash) {
