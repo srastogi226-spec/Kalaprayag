@@ -18,18 +18,19 @@ interface CollectorDashboardProps {
     onLeaveReview: (targetId: string, authorName: string) => void;
     onMarkNotificationAsRead: (id: string) => void;
     onLogout: () => void;
+    initialTab?: 'overview' | 'orders' | 'workshops' | 'saved' | 'notifications';
 }
 
 const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
-    userEmail, userId, customOrders, productOrders, classBookings, favoriteArtisans, favoriteProducts, artisans, products, notifications, reviews, onLeaveReview, onMarkNotificationAsRead, onLogout
+    userEmail, userId, customOrders, productOrders, classBookings, favoriteArtisans, favoriteProducts, artisans, products, notifications, reviews, onLeaveReview, onMarkNotificationAsRead, onLogout, initialTab = 'overview'
 }) => {
-    const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'workshops' | 'saved' | 'notifications'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'workshops' | 'saved' | 'notifications'>(initialTab);
 
     const myCustomOrders = customOrders.filter(o => o.email === userEmail);
     const myProductOrders = productOrders.filter(o => o.customerEmail === userEmail);
     const myBookings = classBookings.filter(b => b.customerEmail === userEmail);
-    const favoredArtisans = artisans.filter(a => favoriteArtisans.some(f => f.artisanId === a.id));
-    const favoredProducts = products.filter(p => favoriteProducts.some(f => f.productId === p.id));
+    const favoredArtisans = artisans.filter(a => favoriteArtisans.some(f => f.artisanId === a.id && f.userId === userId));
+    const favoredProducts = products.filter(p => favoriteProducts.some(f => f.productId === p.id && f.userId === userId));
     const myNotifications = notifications.filter(n => n.userId === userId);
     const unreadNotifs = myNotifications.filter(n => n.status === 'unread').length;
 

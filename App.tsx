@@ -236,6 +236,7 @@ const AppContent: React.FC = () => {
       'artisan-dashboard': '/dashboard',
       admin: '/admin',
       'track-order': '/track',
+      'wishlist': '/wishlist',
       'product-detail': entityId ? `/product/${entityId}` : '/shop',
       'workshop-detail': entityId ? `/workshop/${entityId}` : '/workshops',
       'artisan-profile': entityId ? `/maker/${entityId}` : '/makers',
@@ -261,6 +262,7 @@ const AppContent: React.FC = () => {
       dashboard: 'artisan-dashboard',
       admin: 'admin',
       track: 'track-order',
+      wishlist: 'wishlist',
     };
     if (parts[0] === 'artisan' && parts[1] === 'join') return { page: 'artisan-join' };
     if (parts[0] === 'workshops' && parts[1] === 'group') return { page: 'group-workshops' };
@@ -773,6 +775,30 @@ const AppContent: React.FC = () => {
           );
         }
         return <OrderTracking productOrders={productOrders} customOrders={customOrders} onNavigate={navigateTo} justPlacedOrderId={justPlacedOrderId} />;
+      case 'wishlist':
+        if (currentUser) {
+          return (
+            <CollectorDashboard
+              initialTab="saved"
+              userEmail={currentUser.email || ''}
+              userId={currentUser.uid}
+              customOrders={customOrders}
+              productOrders={productOrders}
+              classBookings={classBookings}
+              favoriteArtisans={favoriteArtisans}
+              favoriteProducts={favoriteProducts}
+              artisans={artisans}
+              products={products}
+              notifications={notifications}
+              reviews={reviews}
+              onLeaveReview={handleLeaveReview}
+              onMarkNotificationAsRead={handleMarkNotificationAsRead}
+              onLogout={handleLogout}
+            />
+          );
+        }
+        // Redirect to login if not authenticated
+        return <ArtisanLogin onSuccess={() => navigateTo('wishlist')} onJoin={() => navigateTo('artisan-join')} />;
       case 'about': return <About />;
       case 'contact': return <Contact />;
       case 'artisan-join': return <ArtisanJoin onApply={handleArtisanApplication} />;
