@@ -36,7 +36,7 @@ const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
 
     const tabs: { id: string; label: string; badge?: number }[] = [
         { id: 'overview', label: 'Overview' },
-        { id: 'orders', label: 'My Orders' },
+        { id: 'orders', label: 'Track Order' },
         { id: 'workshops', label: 'Masterclasses' },
         { id: 'saved', label: 'Wishlist' }
     ];

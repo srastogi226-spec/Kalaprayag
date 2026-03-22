@@ -54,8 +54,8 @@ const Navbar: React.FC<NavbarProps> = ({
     { name: 'Makers', id: 'artisan-profiles' },
     { name: 'About', id: 'about' },
     { name: 'Contact', id: 'contact' },
-    { name: 'My Orders', id: 'track-order' },
-    { name: 'My Wishlist', id: 'wishlist' },
+    { name: 'Track Order', id: 'track-order' },
+    { name: 'Wishlist', id: 'wishlist' },
   ];
 
 
