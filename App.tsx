@@ -201,7 +201,7 @@ const AppContent: React.FC = () => {
       setFavoriteArtisans(snapshot.docs.map(doc => doc.data() as FavoriteArtisan));
     });
 
-    const unsubFavProducts = onSnapshot(collection(db, 'favoriteProducts'), snapshot => {
+    const unsubFavProducts = onSnapshot(collection(db, 'wishlists'), snapshot => {
       setFavoriteProducts(snapshot.docs.map(doc => doc.data() as FavoriteProduct));
     });
 

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Workshop, CustomOrder, ProductOrder, ClassBooking, Artisan, Review, FavoriteArtisan, AppNotification, FavoriteProduct, Product } from '../types';
+import WishlistButton from '../components/WishlistButton';
 
 interface CollectorDashboardProps {
     userEmail: string;
@@ -331,8 +332,8 @@ const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
                                     <div key={p.id} className="group cursor-pointer">
                                         <div className="aspect-[4/5] overflow-hidden bg-gray-50 mb-4 relative">
                                             <img src={p.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={p.name} />
-                                            <div className="absolute top-4 right-4 bg-white/90 p-2 rounded-full cursor-pointer hover:bg-red-50 text-red-500 transition-colors">
-                                                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+                                            <div className="absolute top-4 right-4 z-10">
+                                                <WishlistButton productId={p.id} variant="minimal" />
                                             </div>
                                         </div>
                                         <h4 className="serif text-lg">{p.name}</h4>
