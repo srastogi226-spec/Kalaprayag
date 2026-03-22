@@ -5,13 +5,48 @@ const About: React.FC = () => {
   const { t } = useTranslate();
 
   return (
-    <div className="pt-32 pb-24 animate-in fade-in duration-700">
-      <div className="max-w-7xl mx-auto px-6">
-        <header className="mb-24 text-center">
-          <span className="text-xs uppercase tracking-widest text-[#8B735B] mb-4 block">{t('Our Origin')}</span>
-          <h1 className="text-7xl serif mb-12" dangerouslySetInnerHTML={{ __html: t('The Union of <br/> Craft & Soul') }}></h1>
-          <div className="w-px h-24 bg-[#D1D1D1] mx-auto mb-12"></div>
-        </header>
+    <>
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '280px',
+          marginTop: '64px',
+          overflow: 'hidden',
+          backgroundImage: 'url(/about-banner.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+          }}
+        />
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 10,
+            height: '100%',
+            maxWidth: '80rem',
+            margin: '0 auto',
+            padding: '0 2rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+          }}
+        >
+          <span className="text-[10px] uppercase tracking-widest text-[#C4A882] mb-4 block font-semibold drop-shadow-md">{t('Our Origin')}</span>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl serif text-white tracking-widest leading-tight drop-shadow-md" dangerouslySetInnerHTML={{ __html: t('The Union of <br/> Craft & Soul') }}></h1>
+        </div>
+      </div>
+
+      <div className="pt-12 pb-24 animate-in fade-in duration-700">
+        <div className="max-w-7xl mx-auto px-6">
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-24 items-center mb-32">
           <div>
@@ -56,8 +91,9 @@ const About: React.FC = () => {
             </div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

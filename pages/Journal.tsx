@@ -73,13 +73,55 @@ const Journal: React.FC<JournalProps> = ({ entries }) => {
     }
 
     return (
-        <div className="min-h-screen bg-[#FAF9F6] pt-32 pb-24 text-[#2C2C2C] font-sans selection:bg-[#8B735B]/20">
-            {/* 1. PAGE HEADER */}
-            <header className="max-w-7xl mx-auto px-6 mb-16 text-center animate-in fade-in slide-in-from-top-4 duration-1000">
-                <span className="text-[10px] uppercase tracking-[0.5em] text-[#8B735B] font-bold mb-4 block">{t('Journal')}</span>
-                <h1 className="text-5xl md:text-7xl serif mb-6 leading-tight" dangerouslySetInnerHTML={{ __html: t('Stories of Craft, <br class="hidden md:block" /> Heritage & Home') }}></h1>
-                <p className="text-sm uppercase tracking-widest text-[#999] font-light">{t("Dispatches from India's artisan communities")}</p>
-            </header>
+        <div className="min-h-screen bg-[#FAF9F6] text-[#2C2C2C] font-sans selection:bg-[#8B735B]/20">
+            {/* 1. PAGE HEADER (Hero Banner) */}
+            <div
+                style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '280px',
+                    marginTop: '64px', /* clears fixed navbar */
+                    overflow: 'hidden',
+                    backgroundImage: 'url(/journal-banner.png)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                }}
+            >
+                {/* Dark uniform overlay for readability */}
+                <div
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        backgroundColor: 'rgba(0,0,0,0.6)',
+                    }}
+                />
+
+                {/* Content row */}
+                <div
+                    style={{
+                        position: 'relative',
+                        zIndex: 10,
+                        height: '100%',
+                        maxWidth: '80rem',
+                        margin: '0 auto',
+                        padding: '0 2rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                    }}
+                >
+                    <span className="text-[10px] uppercase tracking-[0.5em] text-[#C4A882] mb-4 block font-semibold drop-shadow-md">{t('Journal')}</span>
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl serif mb-4 text-white tracking-widest leading-tight drop-shadow-md" dangerouslySetInnerHTML={{ __html: t('Stories of Craft, <br class="hidden md:block" /> Heritage & Home') }}>
+                    </h1>
+                    <p className="text-white/80 font-light max-w-xl mx-auto text-sm md:text-base drop-shadow-sm leading-relaxed">
+                        {t("Dispatches from India's artisan communities")}
+                    </p>
+                </div>
+            </div>
+
+            <div className="pt-12 pb-24">
 
             {/* 2. CATEGORY FILTER BAR */}
             <nav className="max-w-7xl mx-auto px-6 mb-20 border-y border-[#E5E5E5] py-6 overflow-x-auto no-scrollbar">
@@ -224,6 +266,7 @@ const Journal: React.FC<JournalProps> = ({ entries }) => {
             </section>
 
             {/* Footer is expected to be rendered by App.tsx */}
+            </div>
         </div>
     );
 };

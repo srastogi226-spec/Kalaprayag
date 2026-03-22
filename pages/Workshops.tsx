@@ -20,14 +20,55 @@ const Workshops: React.FC<WorkshopsProps> = ({ workshops, artisans, classBooking
   );
 
   return (
-    <div className="pt-32 pb-24 min-h-screen px-6 max-w-7xl mx-auto animate-in fade-in duration-700">
-      <header className="mb-16 text-center">
-        <span className="text-xs uppercase tracking-[0.3em] text-[#8B735B] mb-4 block">{t('Academy')}</span>
-        <h1 className="text-6xl serif mb-4">{t('Artist Workshops')}</h1>
-        <p className="text-[#666] font-light max-w-xl mx-auto">
-          {t('Learn heritage crafts directly from the masters. Join our physical studio sessions or online masterclasses.')}
-        </p>
-      </header>
+    <>
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '280px',
+          marginTop: '64px', /* clears fixed navbar */
+          overflow: 'hidden',
+          backgroundImage: 'url(/workshops-banner.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Dark uniform overlay for readability */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+          }}
+        />
+
+        {/* Content row */}
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 10,
+            height: '100%',
+            maxWidth: '80rem',
+            margin: '0 auto',
+            padding: '0 2rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+          }}
+        >
+          <span className="text-[10px] uppercase tracking-[0.3em] text-[#C4A882] mb-4 block font-semibold drop-shadow-md">{t('Academy')}</span>
+          <h1 className="text-5xl md:text-6xl serif mb-4 text-white tracking-widest leading-tight drop-shadow-md">
+            {t('Artist Workshops')}
+          </h1>
+          <p className="text-white/80 font-light max-w-xl mx-auto text-sm md:text-base drop-shadow-sm leading-relaxed">
+            {t('Learn heritage crafts directly from the masters. Join our physical studio sessions or online masterclasses.')}
+          </p>
+        </div>
+      </div>
+
+      <div className="pt-12 pb-24 min-h-screen px-6 max-w-7xl mx-auto animate-in fade-in duration-700">
 
       <div className="flex justify-center gap-4 mb-12">
         {['all', 'online', 'offline'].map((mode) => (
@@ -114,7 +155,8 @@ const Workshops: React.FC<WorkshopsProps> = ({ workshops, artisans, classBooking
           <p className="serif text-2xl italic">{t('No workshops available in this category yet.')}</p>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -265,15 +265,50 @@ const CustomStudio: React.FC<CustomStudioProps> = ({ onSubmitOrder, artisans, on
 
   // ─── Main Form ─────────────────────────────────────────────────────────────
   return (
-    <div className="pt-32 pb-24 min-h-screen animate-in fade-in duration-700">
-      {/* Header */}
-      <div className="max-w-3xl mx-auto px-6 mb-12 text-center">
-        <span className="text-xs uppercase tracking-widest text-[#8B735B] mb-4 block">Bespoke Design</span>
-        <h1 className="text-5xl serif mb-4">The Custom Studio</h1>
-        <p className="text-[#666] font-light max-w-xl mx-auto leading-relaxed text-sm">
-          Commission a one-of-a-kind piece directly from a master artisan.
-        </p>
+    <>
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '280px',
+          marginTop: '64px',
+          overflow: 'hidden',
+          backgroundImage: 'url(/studio-banner.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+          }}
+        />
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 10,
+            height: '100%',
+            maxWidth: '80rem',
+            margin: '0 auto',
+            padding: '0 2rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+          }}
+        >
+          <span className="text-[10px] uppercase tracking-widest text-[#C4A882] mb-4 block font-semibold drop-shadow-md">Bespoke Design</span>
+          <h1 className="text-5xl md:text-6xl serif mb-4 text-white tracking-widest leading-tight drop-shadow-md">The Custom Studio</h1>
+          <p className="text-white/80 font-light max-w-xl mx-auto text-sm md:text-base drop-shadow-sm leading-relaxed">
+            Commission a one-of-a-kind piece directly from a master artisan.
+          </p>
+        </div>
       </div>
+
+      <div className="pt-12 pb-24 min-h-screen animate-in fade-in duration-700">
 
       {/* Progress Stepper - Minimal dots */}
       <div className="max-w-3xl mx-auto px-6 mb-16 h-8 relative">
@@ -709,7 +744,8 @@ const CustomStudio: React.FC<CustomStudioProps> = ({ onSubmitOrder, artisans, on
           </div>
         </div>
       </div>
-    </div >
+      </div>
+    </>
   );
 };
 

@@ -18,12 +18,50 @@ const Contact: React.FC = () => {
   };
 
   return (
-    <div className="pt-32 pb-24 animate-in fade-in duration-700">
-      <div className="max-w-7xl mx-auto px-6">
-        <header className="mb-20 text-center">
-          <h1 className="text-6xl serif mb-6">{t('Connect With Us')}</h1>
-          <p className="text-[#666] max-w-xl mx-auto font-light">{t("Whether you're an interior designer looking for a collaboration or a collector seeking a specific piece, our doors are always open.")}</p>
-        </header>
+    <>
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '280px',
+          marginTop: '64px',
+          overflow: 'hidden',
+          backgroundImage: 'url(/contact-banner.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+          }}
+        />
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 10,
+            height: '100%',
+            maxWidth: '80rem',
+            margin: '0 auto',
+            padding: '0 2rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+          }}
+        >
+          <h1 className="text-5xl md:text-6xl serif mb-4 text-white tracking-widest leading-tight drop-shadow-md">{t('Connect With Us')}</h1>
+          <p className="text-white/80 font-light max-w-xl mx-auto text-sm md:text-base drop-shadow-sm leading-relaxed">
+            {t("Whether you're an interior designer looking for a collaboration or a collector seeking a specific piece, our doors are always open.")}
+          </p>
+        </div>
+      </div>
+
+      <div className="pt-12 pb-24 animate-in fade-in duration-700">
+        <div className="max-w-7xl mx-auto px-6">
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-24">
           <div className="lg:col-span-2">
@@ -144,8 +182,9 @@ const Contact: React.FC = () => {
             </div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
