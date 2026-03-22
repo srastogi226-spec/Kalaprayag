@@ -276,3 +276,20 @@ textarea {
 .animate-soundwave {
   animation: soundwave 1.2s ease-in-out infinite;
 }
+
+/* ── Admin Sidebar ─────────────────────────────────────────────── */
+.admin-sidebar-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

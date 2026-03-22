@@ -39,6 +39,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Dashboard states
   const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'workshops' | 'product-orders' | 'artisans' | 'manage-artisans' | 'pending-products' | 'pending-workshops' | 'active-workshops' | 'moderation' | 'marketplace-requests' | 'institution-requests' | 'journal' | 'invoices' | 'shipping' | 'bookings'>('inventory');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null);
   const [invoiceTypeFilter, setInvoiceTypeFilter] = useState('All');
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState('All');
@@ -152,38 +153,145 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const newInstitutionRequests = institutionRequests.filter(r => r.status === 'new');
 
-  const tabs = [
-    { id: 'inventory', label: 'Inventory', count: pendingProds.length },
-    { id: 'orders', label: 'Orders', count: pendingOrders.length + productOrders.filter(o => o.status === 'pending').length },
-    { id: 'workshops', label: 'Workshops', count: newInstitutionRequests.length + pendingWorkshops.length + classBookings.filter(b => b.status === 'confirmed').length },
-    { id: 'invoices', label: 'Invoices', count: 0 },
-    { id: 'manage-artisans', label: 'Artisans', count: applications.length },
-    { id: 'journal', label: 'Journal', count: 0 },
-    { id: 'moderation', label: 'Reviews', count: pendingReviews.length },
-    { id: 'shipping', label: 'Shipping', count: productOrders.filter(o => o.awb && o.shippingStatus !== 'Delivered').length },
+  const tabs: { id: string; label: string; count: number; icon: React.ReactNode }[] = [
+    { id: 'inventory', label: 'Inventory', count: pendingProds.length, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
+    { id: 'orders', label: 'Orders', count: pendingOrders.length + productOrders.filter(o => o.status === 'pending').length, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg> },
+    { id: 'workshops', label: 'Academy', count: newInstitutionRequests.length + pendingWorkshops.length + classBookings.filter(b => b.status === 'confirmed').length, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
+    { id: 'manage-artisans', label: 'Artisans', count: applications.length, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg> },
+    { id: 'bookings', label: 'Group Bookings', count: classBookings.filter(b => b.status === 'confirmed').length, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
+    { id: 'invoices', label: 'Invoices', count: 0, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg> },
+    { id: 'shipping', label: 'Shipping', count: productOrders.filter(o => o.awb && o.shippingStatus !== 'Delivered').length, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg> },
+    { id: 'journal', label: 'Journal', count: 0, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg> },
+    { id: 'moderation', label: 'Reviews', count: pendingReviews.length, icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="square" strokeLinejoin="miter" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg> },
   ];
 
+  const totalPendingCount = tabs.reduce((sum, t) => sum + t.count, 0);
+
   return (
-    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-12">
-        <h1 className="text-4xl serif">Management Console</h1>
-        <div className="flex items-center gap-4">
-          <div className="flex flex-wrap gap-2 bg-[#F0F0F0] p-1 rounded-md">
-            {tabs.map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`px-4 py-2 text-[10px] uppercase tracking-widest rounded-md transition-all flex items-center gap-2 ${activeTab === tab.id ? 'bg-white shadow-sm text-[#2C2C2C]' : 'text-[#999]'}`}>
-                {tab.label}
-                {tab.count !== undefined && tab.count > 0 && (
-                  <span className="text-white rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center text-[8px] font-bold animate-pulse bg-red-500">{tab.count}</span>
+    <div className="flex min-h-screen bg-[#FAF9F6]">
+
+      {/* ═══ MOBILE OVERLAY ═══ */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* ═══ LEFT SIDEBAR ═══ */}
+      <aside
+        className={`fixed top-0 left-0 z-50 h-full w-[260px] bg-[#2C2C2C] flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Brand */}
+        <div className="px-7 pt-8 pb-6 border-b border-white/10">
+          <p className="text-[9px] uppercase tracking-[0.35em] text-[#8B735B] font-bold mb-1">Admin Console</p>
+          <h1 className="text-[22px] text-[#FAF9F6] serif tracking-wide" style={{ fontFamily: "'Playfair Display', serif" }}>KALA PRAYAG</h1>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3 admin-sidebar-scroll">
+          <p className="text-[9px] uppercase tracking-[0.25em] text-[#666] font-bold px-4 mb-3">Navigation</p>
+          {tabs.map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id as any); setSidebarOpen(false); }}
+                className={`group w-full flex items-center gap-3 px-4 py-3 mb-0.5 text-left transition-all duration-200 relative ${
+                  isActive
+                    ? 'bg-[#8B735B]/15 text-[#FAF9F6]'
+                    : 'text-[#999] hover:text-[#E5E5E5] hover:bg-white/5'
+                }`}
+              >
+                {/* Active indicator bar */}
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-[#8B735B]" />
+                )}
+
+                {/* Icon */}
+                <span className={`flex-shrink-0 transition-colors ${
+                  isActive ? 'text-[#8B735B]' : 'text-[#666] group-hover:text-[#999]'
+                }`}>
+                  {tab.icon}
+                </span>
+
+                {/* Label */}
+                <span className={`text-[11px] uppercase tracking-[0.15em] flex-1 ${
+                  isActive ? 'font-bold' : 'font-medium'
+                }`}>
+                  {tab.label}
+                </span>
+
+                {/* Badge */}
+                {tab.count > 0 && (
+                  <span className="flex-shrink-0 bg-red-500 text-white text-[9px] font-bold min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                    {tab.count}
+                  </span>
                 )}
               </button>
-            ))}
-          </div>
-          <button onClick={handleAdminLogout} className="text-[9px] uppercase tracking-widest text-[#999] border border-[#E5E5E5] px-4 py-2 hover:border-red-300 hover:text-red-500 transition-all flex items-center gap-2 rounded-md">
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-            Logout
+            );
+          })}
+        </nav>
+
+        {/* Bottom section */}
+        <div className="px-4 py-5 border-t border-white/10 mt-auto">
+          {totalPendingCount > 0 && (
+            <div className="mb-4 px-3 py-2.5 bg-amber-500/10 border border-amber-500/20">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-amber-400 font-bold flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-amber-400 animate-pulse" />
+                {totalPendingCount} items need attention
+              </p>
+            </div>
+          )}
+          <button
+            onClick={handleAdminLogout}
+            className="w-full flex items-center gap-3 px-3 py-2.5 text-[#666] hover:text-red-400 transition-colors group"
+          >
+            <svg className="w-[18px] h-[18px] group-hover:text-red-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="square" strokeLinejoin="miter" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span className="text-[10px] uppercase tracking-[0.15em] font-medium">Sign Out</span>
           </button>
         </div>
-      </div>
+      </aside>
+
+      {/* ═══ MAIN CONTENT ═══ */}
+      <main className="flex-1 min-w-0 lg:ml-0">
+        {/* Mobile Top Bar */}
+        <div className="lg:hidden sticky top-0 z-30 bg-[#2C2C2C] px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="text-[#FAF9F6] p-1.5 hover:bg-white/10 transition-colors"
+            aria-label="Open menu"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="square" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <span className="text-[13px] text-[#FAF9F6] serif tracking-wide" style={{ fontFamily: "'Playfair Display', serif" }}>KALA PRAYAG</span>
+          <div className="flex items-center gap-2">
+            {totalPendingCount > 0 && (
+              <span className="bg-red-500 text-white text-[9px] font-bold min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                {totalPendingCount}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Content Header */}
+        <div className="px-6 lg:px-10 pt-8 pb-6 border-b border-[#E5E5E5] bg-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.25em] text-[#8B735B] font-bold mb-1">{tabs.find(t => t.id === activeTab)?.label || 'Dashboard'}</p>
+              <h2 className="text-2xl lg:text-3xl serif text-[#2C2C2C]" style={{ fontFamily: "'Playfair Display', serif" }}>Management Console</h2>
+            </div>
+          </div>
+        </div>
+
+        {/* Content Body */}
+        <div className="px-6 lg:px-10 py-8">
 
       {/* Category filter — only on inventory tab */}
       {activeTab === 'inventory' && (
@@ -1963,6 +2071,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
 
 
+        </div>
+      </main>
     </div>
   );
 };
