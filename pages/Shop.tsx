@@ -28,13 +28,120 @@ const Shop: React.FC<ShopProps> = ({ products, onViewProduct, onAddToCart, onTog
   });
 
   return (
-    <div className="pt-32 pb-24 min-h-screen px-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <header className="mb-16 text-center">
-        <h1 className="text-6xl serif mb-4">{t('Collection')}</h1>
-        <p className="text-[#666] font-light max-w-xl mx-auto">
-          {t('Explore our range of handcrafted decor pieces, each meticulously made using heritage techniques.')}
-        </p>
-      </header>
+    <>
+      {/* ── Hero Banner ── */}
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '280px',
+          marginTop: '64px', /* clears fixed navbar */
+          overflow: 'hidden',
+          backgroundImage: 'url(/shop-hero-banner.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Dark gradient overlay: very dark left → translucent right */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(to right, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.68) 45%, rgba(0,0,0,0.38) 100%)',
+          }}
+        />
+
+        {/* Bottom fade into page background */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '80px',
+            background: 'linear-gradient(to bottom, transparent 0%, #FAF9F6 100%)',
+          }}
+        />
+
+        {/* Content row */}
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 10,
+            height: '100%',
+            maxWidth: '80rem',
+            margin: '0 auto',
+            padding: '0 2rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '2rem',
+          }}
+        >
+          {/* LEFT: brand + heading */}
+          <div style={{ flex: '0 1 55%' }}>
+            <p
+              style={{
+                fontSize: '10px',
+                letterSpacing: '0.25em',
+                textTransform: 'uppercase',
+                color: '#C4A882',
+                marginBottom: '14px',
+                fontWeight: 500,
+              }}
+            >
+              Kala Prayag
+            </p>
+            <h1
+              style={{
+                fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif",
+                fontSize: 'clamp(2rem, 4vw, 3rem)',
+                lineHeight: 1.15,
+                color: '#FFFFFF',
+                fontWeight: 400,
+                margin: 0,
+              }}
+            >
+              Discover{' '}
+              <em
+                style={{
+                  color: '#C4A882',
+                  fontStyle: 'italic',
+                }}
+              >
+                Handcrafted
+              </em>{' '}
+              Pieces
+            </h1>
+          </div>
+
+          {/* RIGHT: short description */}
+          <div style={{ flex: '0 1 38%', textAlign: 'left' }}>
+            <p
+              style={{
+                color: 'rgba(255,255,255,0.70)',
+                fontSize: '13px',
+                fontWeight: 300,
+                lineHeight: 1.8,
+                maxWidth: '340px',
+              }}
+            >
+              Each piece in our collection is thoughtfully made by skilled artisans, honoring
+              centuries-old craft traditions — where every texture tells a story.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main shop content */}
+      <div className="pt-12 pb-24 min-h-screen px-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <header className="mb-16 text-center">
+          <h1 className="text-6xl serif mb-4">{t('Collection')}</h1>
+          <p className="text-[#666] font-light max-w-xl mx-auto">
+            {t('Explore our range of handcrafted decor pieces, each meticulously made using heritage techniques.')}
+          </p>
+        </header>
 
       {/* Search + Horizontal Categories */}
       <div className="mb-12 space-y-8">
@@ -160,7 +267,9 @@ const Shop: React.FC<ShopProps> = ({ products, onViewProduct, onAddToCart, onTog
           )}
         </main>
       </div>
-    </div>
+
+      </div>
+    </>
   );
 };
 
