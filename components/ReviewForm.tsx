@@ -7,9 +7,10 @@ interface ReviewFormProps {
   targetId: string;
   targetType: 'product' | 'artist';
   onReviewSubmitted?: () => void;
+  onNavigate?: (page: string) => void;
 }
 
-const ReviewForm: React.FC<ReviewFormProps> = ({ targetId, targetType, onReviewSubmitted }) => {
+const ReviewForm: React.FC<ReviewFormProps> = ({ targetId, targetType, onReviewSubmitted, onNavigate }) => {
   const { currentUser } = useAuth();
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
@@ -78,8 +79,13 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ targetId, targetType, onReviewS
 
   if (!currentUser) return (
     <div className="bg-[#FAF9F6] p-8 border border-dashed border-[#E5E5E5] text-center">
-      <p className="text-sm text-[#999] mb-4 italic">Share your experience with this {targetType}.</p>
-      <p className="text-xs uppercase tracking-widest font-bold text-[#8B735B]">Please Sign In to Review</p>
+      <p className="text-sm text-[#999] mb-6 italic transition-all duration-300">Share your experience with this {targetType}.</p>
+      <button 
+        onClick={() => onNavigate?.('artisan-login')}
+        className="px-8 py-3 bg-[#8B735B] text-white text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-[#6D5A47] transition-all shadow-lg"
+      >
+        Sign In to Review
+      </button>
     </div>
   );
 

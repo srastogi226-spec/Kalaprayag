@@ -670,6 +670,7 @@ const AppContent: React.FC = () => {
           onAddToCart={handleAddToCart}
           cart={cart}
           onToggleCart={() => setShowCart(true)}
+          onNavigate={navigateTo}
         />
       );
     }
@@ -725,6 +726,7 @@ const AppContent: React.FC = () => {
             onViewProduct={viewProduct}
             onAddToCart={handleAddToCart}
             onToggleCart={() => setShowCart(true)}
+            onNavigate={navigateTo}
           />
         );
       case 'workshops':

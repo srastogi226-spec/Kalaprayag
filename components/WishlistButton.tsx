@@ -6,9 +6,10 @@ import { useAuth } from '../contexts/AuthContext';
 interface WishlistButtonProps {
   productId: string;
   variant?: 'outline' | 'minimal';
+  onNavigate?: (page: string) => void;
 }
 
-const WishlistButton: React.FC<WishlistButtonProps> = ({ productId, variant = 'minimal' }) => {
+const WishlistButton: React.FC<WishlistButtonProps> = ({ productId, variant = 'minimal', onNavigate }) => {
   const { currentUser } = useAuth();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -48,7 +49,7 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({ productId, variant = 'm
   const toggleWishlist = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card clicks if in Shop grid
     if (!currentUser) {
-      alert('Sign in to save pieces to your wishlist.');
+      onNavigate?.('artisan-login');
       return;
     }
 

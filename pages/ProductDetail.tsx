@@ -9,9 +9,10 @@ interface ProductDetailProps {
   cart: CartItem[];
   onAddToCart: (item: CartItem) => void;
   onToggleCart: () => void;
+  onNavigate?: (page: string) => void;
 }
 
-const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, cart, onAddToCart, onToggleCart }) => {
+const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, cart, onAddToCart, onToggleCart, onNavigate }) => {
   const [selectedSize, setSelectedSize] = useState('Standard');
   const [selectedFinish, setSelectedFinish] = useState('Original');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -124,7 +125,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, cart, on
           <span className="text-xs uppercase tracking-[0.2em] text-[#8B735B] mb-2 block">{product.category}</span>
           <div className="flex justify-between items-start mb-6">
             <h1 className="text-5xl serif">{product.name}</h1>
-            <WishlistButton productId={product.id} variant="outline" />
+            <WishlistButton productId={product.id} variant="outline" onNavigate={onNavigate} />
           </div>
           <div className="flex items-center gap-3 mb-8">
             <p className="text-[#999] line-through text-sm">₹ {Math.round(product.price * 1.10).toLocaleString()}</p>
@@ -212,7 +213,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, cart, on
           </div>
           <div className="lg:col-span-5">
             <div className="sticky top-32 bg-white border border-[#F0F0F0] p-10 shadow-sm">
-              <ReviewForm targetId={product.id} targetType="product" />
+              <ReviewForm targetId={product.id} targetType="product" onNavigate={onNavigate} />
             </div>
           </div>
         </div>

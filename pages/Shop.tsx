@@ -10,9 +10,10 @@ interface ShopProps {
   onViewProduct: (id: string) => void;
   onAddToCart?: (item: CartItem) => void;
   onToggleCart?: () => void;
+  onNavigate?: (page: string) => void;
 }
 
-const Shop: React.FC<ShopProps> = ({ products, onViewProduct, onAddToCart, onToggleCart }) => {
+const Shop: React.FC<ShopProps> = ({ products, onViewProduct, onAddToCart, onToggleCart, onNavigate }) => {
   const [activeCategory, setActiveCategory] = useState<Category>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFirstImage, setShowFirstImage] = useState(false);
@@ -163,7 +164,7 @@ const Shop: React.FC<ShopProps> = ({ products, onViewProduct, onAddToCart, onTog
                   )}
                   {/* Wishlist Button — Always visible for visibility */}
                   <div className="absolute top-3 right-3 z-10">
-                    <WishlistButton productId={product.id} variant="minimal" />
+                    <WishlistButton productId={product.id} variant="minimal" onNavigate={onNavigate} />
                   </div>
                 </div>
                 <div>

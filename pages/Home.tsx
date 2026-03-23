@@ -212,7 +212,7 @@ const Home: React.FC<HomeProps> = ({ products, onViewProduct, onNavigate, artisa
                 </div>
                 {/* Wishlist Button — Always visible for visibility when logged out */}
                 <div className="absolute top-4 right-4 z-10">
-                   <WishlistButton productId={product.id} variant="minimal" />
+                   <WishlistButton productId={product.id} variant="minimal" onNavigate={onNavigate} />
                 </div>
               </div>
               <h3 className="text-lg serif mb-0.5 text-[#1A1A1A] line-clamp-1">{product.name}</h3>
