@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Product, Artisan, CartItem } from '../types';
 import { useTranslate } from '../hooks/useTranslate';
+import WishlistButton from '../components/WishlistButton';
 
 interface HomeProps {
   products: Product[];
@@ -208,6 +209,10 @@ const Home: React.FC<HomeProps> = ({ products, onViewProduct, onNavigate, artisa
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500"></div>
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
                   <button className="bg-white text-[#1A1A1A] px-5 py-2.5 text-[7px] uppercase tracking-[0.3em] font-bold shadow-2xl whitespace-nowrap">{t('Quick View')}</button>
+                </div>
+                {/* Wishlist Button — Always visible for visibility when logged out */}
+                <div className="absolute top-4 right-4 z-10">
+                   <WishlistButton productId={product.id} variant="minimal" />
                 </div>
               </div>
               <h3 className="text-lg serif mb-0.5 text-[#1A1A1A] line-clamp-1">{product.name}</h3>

@@ -136,6 +136,22 @@ const Navbar: React.FC<NavbarProps> = ({
               </span>
             </button>
 
+            {/* Wishlist Icon */}
+            <button
+              onClick={() => onNavigate('wishlist')}
+              className={`group relative flex items-center gap-2 p-2 transition-all duration-300 rounded-full ${textColor}`}
+              aria-label="View Wishlist"
+            >
+              <div className="relative">
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <span className="hidden sm:block text-[9px] uppercase tracking-widest font-bold opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
+                Wishlist
+              </span>
+            </button>
+
             {/* Menu Toggle */}
             <button
               type="button"
