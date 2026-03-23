@@ -23,6 +23,7 @@ import WorkshopDetail from './pages/WorkshopDetail';
 import ArtisanProfile from './pages/ArtisanProfile';
 import GroupWorkshops from './pages/GroupWorkshops';
 import CollectorDashboard from './pages/CollectorDashboard';
+import CollectorLogin from './pages/CollectorLogin';
 import OrderTracking from './pages/OrderTracking';
 import ReviewModal from './components/ReviewModal';
 import ChatWidget from './components/ChatWidget';
@@ -802,7 +803,9 @@ const AppContent: React.FC = () => {
           );
         }
         // Redirect to login if not authenticated
-        return <ArtisanLogin onSuccess={() => navigateTo('wishlist')} onJoin={() => navigateTo('artisan-join')} />;
+        return <CollectorLogin onSuccess={() => navigateTo('wishlist')} onNavigate={navigateTo} />;
+      case 'collector-login':
+        return <CollectorLogin onSuccess={() => navigateTo('track-order')} onNavigate={navigateTo} />;
       case 'about': return <About />;
       case 'contact': return <Contact />;
       case 'artisan-join': return <ArtisanJoin onApply={handleArtisanApplication} />;

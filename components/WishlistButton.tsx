@@ -49,7 +49,7 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({ productId, variant = 'm
   const toggleWishlist = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card clicks if in Shop grid
     if (!currentUser) {
-      onNavigate?.('artisan-login');
+      onNavigate?.('collector-login');
       return;
     }
 

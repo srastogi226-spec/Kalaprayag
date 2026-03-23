@@ -81,7 +81,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ targetId, targetType, onReviewS
     <div className="bg-[#FAF9F6] p-8 border border-dashed border-[#E5E5E5] text-center">
       <p className="text-sm text-[#999] mb-6 italic transition-all duration-300">Share your experience with this {targetType}.</p>
       <button 
-        onClick={() => onNavigate?.('artisan-login')}
+        onClick={() => onNavigate?.('collector-login')}
         className="px-8 py-3 bg-[#8B735B] text-white text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-[#6D5A47] transition-all shadow-lg"
       >
         Sign In to Review
