@@ -298,7 +298,10 @@ const ArtisanDashboard: React.FC<ArtisanDashboardProps> = ({
     o.assignedArtisanId === artisan.id && o.adminStatus === 'approved'
   );
   const newOrdersCount = myOrders.filter(o => o.artisanStatus === 'waiting').length;
-  const myReviews = reviews.filter(r => r.targetId === artisan.id);
+  const myReviews = reviews.filter(r => 
+    r.targetId === artisan.id || 
+    myProducts.some(p => p.id === r.targetId)
+  );
 
   const myProductOrders = productOrders.filter(o =>
     o.artisanId === artisan.id || o.items.some(item => {
@@ -1225,7 +1228,14 @@ const ArtisanDashboard: React.FC<ArtisanDashboardProps> = ({
                     </div>
                   </div>
                   <p className="text-sm font-light italic text-[#4A4A4A]">"{r.comment}"</p>
-                  <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded border ${r.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>{r.status}</span>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded border ${r.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>{r.status}</span>
+                    {r.targetType === 'product' && (
+                      <span className="text-[10px] text-[#999] opacity-70 italic border-l border-[#E5E5E5] pl-3">
+                        Product: {myProducts.find(p => p.id === r.targetId)?.name || 'Deleted Product'}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
