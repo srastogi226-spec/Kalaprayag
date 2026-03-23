@@ -776,6 +776,8 @@ const AppContent: React.FC = () => {
               onLogout={handleLogout}
               onAddToCart={handleAddToCart}
               onToggleCart={() => setShowCart(true)}
+              onViewProduct={viewProduct}
+              onViewArtisan={viewArtisan}
               onNavigate={navigateTo}
             />
           );
@@ -802,6 +804,8 @@ const AppContent: React.FC = () => {
               onLogout={handleLogout}
               onAddToCart={handleAddToCart}
               onToggleCart={() => setShowCart(true)}
+              onViewProduct={viewProduct}
+              onViewArtisan={viewArtisan}
               onNavigate={navigateTo}
             />
           );
@@ -884,6 +888,8 @@ const AppContent: React.FC = () => {
               onLogout={handleLogout}
               onAddToCart={handleAddToCart}
               onToggleCart={() => setShowCart(true)}
+              onViewProduct={viewProduct}
+              onViewArtisan={viewArtisan}
               onNavigate={navigateTo}
             />
           );

@@ -20,12 +20,14 @@ interface CollectorDashboardProps {
     onLogout: () => void;
     onAddToCart: (item: any) => void;
     onToggleCart: () => void;
+    onViewProduct: (id: string) => void;
+    onViewArtisan: (id: string) => void;
     onNavigate?: (page: string) => void;
     initialTab?: 'overview' | 'orders' | 'workshops' | 'saved' | 'notifications';
 }
 
 const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
-    userEmail, userId, customOrders, productOrders, classBookings, favoriteArtisans, favoriteProducts, artisans, products, notifications, reviews, onLeaveReview, onMarkNotificationAsRead, onLogout, onAddToCart, onToggleCart, onNavigate, initialTab = 'overview'
+    userEmail, userId, customOrders, productOrders, classBookings, favoriteArtisans, favoriteProducts, artisans, products, notifications, reviews, onLeaveReview, onMarkNotificationAsRead, onLogout, onAddToCart, onToggleCart, onViewProduct, onViewArtisan, onNavigate, initialTab = 'overview'
 }) => {
     const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'workshops' | 'saved' | 'notifications'>(initialTab);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -436,7 +438,7 @@ const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
                                     <h3 className="text-xl serif mb-6 border-b pb-4 border-gray-100">Bespoke Wishlist ({favoredProducts.length})</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                                         {favoredProducts.map(p => (
-                                            <div key={p.id} className="group cursor-pointer">
+                                            <div key={p.id} className="group cursor-pointer" onClick={() => onViewProduct(p.id)}>
                                                 <div className="aspect-[4/5] overflow-hidden bg-gray-50 mb-4 relative">
                                                     <img src={p.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={p.name} />
                                                     <div className="absolute top-4 right-4 z-10">
@@ -488,7 +490,7 @@ const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
                                                 <h4 className="serif text-xl mb-2">{a.brandName || a.name}</h4>
                                                 <p className="text-[10px] uppercase tracking-[0.3em] text-[#8B735B] font-bold">{a.craftType}</p>
                                                 <div className="mt-6 pt-6 border-t border-[#F9F9F9]">
-                                                    <button className="text-[9px] uppercase tracking-[0.4em] font-bold text-[#2C2C2C] hover:text-[#8B735B] transition-colors">View Profile</button>
+                                                    <button onClick={() => onViewArtisan(a.id)} className="text-[9px] uppercase tracking-[0.4em] font-bold text-[#2C2C2C] hover:text-[#8B735B] transition-colors">View Profile</button>
                                                 </div>
                                             </div>
                                         ))}
