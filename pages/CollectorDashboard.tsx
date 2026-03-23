@@ -18,12 +18,14 @@ interface CollectorDashboardProps {
     onLeaveReview: (targetId: string, authorName: string) => void;
     onMarkNotificationAsRead: (id: string) => void;
     onLogout: () => void;
+    onAddToCart: (item: any) => void;
+    onToggleCart: () => void;
     onNavigate?: (page: string) => void;
     initialTab?: 'overview' | 'orders' | 'workshops' | 'saved' | 'notifications';
 }
 
 const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
-    userEmail, userId, customOrders, productOrders, classBookings, favoriteArtisans, favoriteProducts, artisans, products, notifications, reviews, onLeaveReview, onMarkNotificationAsRead, onLogout, onNavigate, initialTab = 'overview'
+    userEmail, userId, customOrders, productOrders, classBookings, favoriteArtisans, favoriteProducts, artisans, products, notifications, reviews, onLeaveReview, onMarkNotificationAsRead, onLogout, onAddToCart, onToggleCart, onNavigate, initialTab = 'overview'
 }) => {
     const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'workshops' | 'saved' | 'notifications'>(initialTab);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -443,9 +445,27 @@ const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
                                                 </div>
                                                 <h4 className="serif text-lg">{p.name}</h4>
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <p className="text-[#999] line-through text-[10px]">₹ {Math.round(p.price * 1.10).toLocaleString()}</p>
                                                     <p className="text-[#2C2C2C] font-bold text-xs">₹ {p.price.toLocaleString()}</p>
                                                 </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onAddToCart({
+                                                            productId: p.id,
+                                                            name: p.name,
+                                                            price: p.price,
+                                                            image: p.images[0],
+                                                            quantity: 1,
+                                                            size: 'Standard',
+                                                            finish: 'Original',
+                                                            notes: ''
+                                                        });
+                                                        onToggleCart();
+                                                    }}
+                                                    className="w-full mt-4 bg-[#2C2C2C] text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-[#8B735B] transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300"
+                                                >
+                                                    Move to Cart
+                                                </button>
                                             </div>
                                         ))}
                                     </div>

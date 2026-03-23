@@ -774,6 +774,8 @@ const AppContent: React.FC = () => {
               onLeaveReview={handleLeaveReview}
               onMarkNotificationAsRead={handleMarkNotificationAsRead}
               onLogout={handleLogout}
+              onAddToCart={handleAddToCart}
+              onToggleCart={() => setShowCart(true)}
               onNavigate={navigateTo}
             />
           );
@@ -798,6 +800,8 @@ const AppContent: React.FC = () => {
               onLeaveReview={handleLeaveReview}
               onMarkNotificationAsRead={handleMarkNotificationAsRead}
               onLogout={handleLogout}
+              onAddToCart={handleAddToCart}
+              onToggleCart={() => setShowCart(true)}
               onNavigate={navigateTo}
             />
           );
@@ -878,6 +882,8 @@ const AppContent: React.FC = () => {
               onLeaveReview={handleLeaveReview}
               onMarkNotificationAsRead={handleMarkNotificationAsRead}
               onLogout={handleLogout}
+              onAddToCart={handleAddToCart}
+              onToggleCart={() => setShowCart(true)}
               onNavigate={navigateTo}
             />
           );
