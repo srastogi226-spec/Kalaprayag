@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Product, Artisan, CartItem } from '../types';
+import { Product, CartItem } from '../types';
 import { useTranslate } from '../hooks/useTranslate';
 import WishlistButton from '../components/WishlistButton';
 
