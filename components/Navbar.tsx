@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface NavbarProps {
   onNavigate: (page: string) => void;
@@ -17,208 +17,138 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isHome = currentPage === 'home';
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-  }, [isMenuOpen]);
-
-  // Desktop shows only core links — Custom Studio & Contact are in the menu drawer
-  const desktopLinks = [
-    { name: 'Shop', id: 'shop' },
-    { name: 'Workshops', id: 'workshops' },
-    { name: 'Journal', id: 'journal' },
-    { name: 'Makers', id: 'artisan-profiles' },
-    { name: 'About', id: 'about' },
-  ];
-
-  // Full list for the hamburger drawer
-  const navLinks = [
-    { name: 'Home', id: 'home' },
-    { name: 'Shop', id: 'shop' },
-    { name: 'Workshops', id: 'workshops' },
-    { name: 'Journal', id: 'journal' },
-    { name: 'Custom Studio', id: 'studio' },
-    { name: 'Makers', id: 'artisan-profiles' },
-    { name: 'About', id: 'about' },
-    { name: 'Contact', id: 'contact' },
-    { name: 'My Orders', id: 'track-order' },
-  ];
-
 
   const handleMobileNavigate = (id: string) => {
     onNavigate(id);
     setIsMenuOpen(false);
   };
 
-  const isLightMode = !isHome || isScrolled || isMenuOpen;
-  const textColor = isLightMode ? 'text-[#1A1A1A]' : 'text-white';
-  const accentColor = isLightMode ? 'text-[#8B735B]' : 'text-white/60';
-  const navBg = isLightMode
-    ? 'bg-white/95 backdrop-blur-xl border-b border-gray-100 py-4 shadow-sm'
-    : 'bg-transparent py-8';
+  const desktopLinks = [
+    { name: 'Shop', id: 'shop' },
+    { name: 'Collections', id: 'shop' },
+    { name: 'Artisans', id: 'artisan-profiles' },
+    { name: 'About', id: 'about' },
+    { name: 'Contact', id: 'contact' },
+  ];
+
+  const navBg = isScrolled
+    ? 'bg-white border-b border-gray-200 shadow-sm'
+    : 'bg-white';
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 w-full z-[100] transition-all duration-700 ease-in-out ${navBg}`}>
-        <div className="max-w-7xl mx-auto px-8 flex justify-between items-center relative">
+      <nav className={`fixed top-0 left-0 w-full z-[100] transition-colors duration-300 ${navBg}`}>
+        <div className="max-w-[1400px] mx-auto px-6 h-20 md:h-24 flex justify-between items-center">
 
-          {/* Brand Identity */}
-          <button
-            onClick={() => handleMobileNavigate('home')}
-            className="flex flex-col items-start group z-50 text-left"
-          >
-            <div className="flex flex-col items-start leading-none">
-              <span className={`text-xs tracking-[0.5em] uppercase transition-colors duration-500 font-medium ${accentColor}`} style={{ fontFamily: "'Tiro Devanagari', serif" }}>
-                Kala
-              </span>
-              <span className={`text-3xl md:text-4xl transition-colors duration-500 ${textColor}`} style={{ fontFamily: "'Tiro Devanagari', serif", letterSpacing: '4px', lineHeight: '1.1' }}>
-                PRAYAG
-              </span>
-              <span className={`text-[7px] tracking-[0.5em] uppercase mt-1 transition-opacity duration-500 font-medium ${accentColor}`}>
-                Artisanal Heritage
-              </span>
-            </div>
-          </button>
+          {/* Logo (Left-aligned) */}
+          <div className="flex-1 flex justify-start">
+            <button
+              onClick={() => handleMobileNavigate('home')}
+              className="text-left"
+            >
+              <h1 className="text-2xl md:text-[28px] font-bold text-[#1A1A1A] tracking-wider" style={{ fontFamily: "'Playfair Display', serif" }}>
+                KALA PRAYAG
+              </h1>
+            </button>
+          </div>
 
-          {/* Desktop Navigation — 5 primary links only */}
-          <div className="hidden lg:flex items-center space-x-7">
+          {/* Centered Navigation */}
+          <div className="hidden lg:flex flex-1 justify-center space-x-10">
             {desktopLinks.map((link) => (
               <button
-                key={link.id}
+                key={link.name}
                 onClick={() => handleMobileNavigate(link.id)}
-                className={`group relative text-[11px] tracking-widest uppercase transition-all duration-300 ${currentPage === link.id
-                  ? 'text-[#8B735B] font-semibold'
-                  : `${isLightMode ? 'text-[#4A4A4A] hover:text-[#1A1A1A]' : 'text-white/90 hover:text-white'}`
-                  }`}
+                className={`text-[11px] font-medium tracking-[0.25em] uppercase transition-colors hover:text-[#8B735B] ${currentPage === link.id ? 'text-[#8B735B]' : 'text-[#4A4A4A]'}`}
+                style={{ fontFamily: "'Inter', sans-serif" }}
               >
                 {link.name}
-                <span className={`absolute -bottom-1 left-0 h-[1px] bg-[#8B735B] transition-all duration-300 ${currentPage === link.id ? 'w-full' : 'w-0 group-hover:w-full'
-                  }`}></span>
               </button>
             ))}
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2 md:gap-4 relative z-[110]">
+          {/* Right-aligned Icons */}
+          <div className="flex-1 flex justify-end items-center gap-6">
+
+            {/* Search Icon */}
+            <button
+              onClick={() => handleMobileNavigate('shop')}
+              className="text-[#1A1A1A] hover:text-[#8B735B] transition-colors"
+              aria-label="Search"
+            >
+              <svg className="w-[22px] h-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+            </button>
+
+            {/* Account Icon */}
+            <button
+              onClick={() => handleMobileNavigate('track-order')}
+              className="text-[#1A1A1A] hover:text-[#8B735B] transition-colors"
+              aria-label="Account"
+            >
+              <svg className="w-[22px] h-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+            </button>
 
             {/* Cart Icon */}
             <button
               onClick={onToggleCart}
-              className={`group relative flex items-center gap-2 p-2 transition-all duration-300 rounded-full ${textColor}`}
-              aria-label="View Cart"
+              className="relative text-[#1A1A1A] hover:text-[#8B735B] transition-colors"
+              aria-label="Cart"
             >
-              <div className="relative">
-                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#8B735B] text-white text-[8px] min-w-[14px] h-[14px] flex items-center justify-center rounded-full font-bold px-0.5 animate-in zoom-in duration-300">
-                    {cartCount}
-                  </span>
-                )}
-              </div>
-              <span className="hidden sm:block text-[9px] uppercase tracking-widest font-bold opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
-                Cart
-              </span>
+              <svg className="w-[22px] h-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+              </svg>
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-[#8B735B] text-white text-[9px] min-w-[16px] h-[16px] flex items-center justify-center rounded-full font-bold px-1">
+                  {cartCount}
+                </span>
+              )}
             </button>
 
-            {/* Wishlist Icon */}
-            <button
-              onClick={() => onNavigate('wishlist')}
-              className={`group relative flex items-center gap-2 p-2 transition-all duration-300 rounded-full ${textColor}`}
-              aria-label="View Wishlist"
-            >
-              <div className="relative">
-                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <span className="hidden sm:block text-[9px] uppercase tracking-widest font-bold opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
-                Wishlist
-              </span>
-            </button>
-
-            {/* Menu Toggle */}
+            {/* Menu Toggle (Mobile) */}
             <button
               type="button"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`group flex items-center gap-2 p-2 transition-all duration-300 rounded-full ${textColor}`}
+              className="lg:hidden text-[#1A1A1A] p-1 ml-2"
               aria-label={isMenuOpen ? "Close Menu" : "Open Menu"}
             >
-              <span className="hidden md:block text-[10px] uppercase tracking-[0.3em] font-bold opacity-70 group-hover:opacity-100 transition-opacity">
-                {isMenuOpen ? 'Close' : 'Menu'}
-              </span>
-              <div className="w-8 h-8 flex flex-col justify-center items-center gap-1.5">
-                <span className={`w-6 h-[1.5px] bg-current transition-all duration-500 ease-in-out ${isMenuOpen ? 'rotate-45 translate-y-[7.5px]' : ''}`}></span>
-                <span className={`w-6 h-[1.5px] bg-current transition-all duration-300 ease-in-out ${isMenuOpen ? 'opacity-0 scale-x-0' : 'scale-x-100'}`}></span>
-                <span className={`w-6 h-[1.5px] bg-current transition-all duration-500 ease-in-out ${isMenuOpen ? '-rotate-45 -translate-y-[7.5px]' : ''}`}></span>
+              <div className="w-6 h-5 flex flex-col justify-between">
+                <span className={`h-px bg-current w-full transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-[9px]' : ''}`}></span>
+                <span className={`h-px bg-current w-full transition-all duration-300 ${isMenuOpen ? 'opacity-0' : ''}`}></span>
+                <span className={`h-px bg-current w-full transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-[9px]' : ''}`}></span>
               </div>
             </button>
+
           </div>
         </div>
       </nav>
 
-      {/* Navigation Drawer */}
+      {/* Mobile Menu Drawer */}
       <div
-        className={`fixed inset-0 z-[95] transition-all duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] transform overflow-y-auto overscroll-behavior-contain ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
-          }`}
-        style={{ backgroundColor: 'rgba(10, 10, 10, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
+        className={`fixed inset-0 z-[90] bg-white transition-transform duration-500 ease-in-out lg:hidden ${
+          isMenuOpen ? 'translate-y-0' : '-translate-y-full'
+        }`}
       >
-        <div className="flex flex-col min-h-full items-center justify-center px-10 pt-32 pb-16 space-y-12">
-          {/* Main Links */}
-          <div className="flex flex-wrap justify-center gap-4 md:gap-6 w-full max-w-5xl mx-auto px-4 mt-8">
-            {navLinks.map((link, idx) => (
-              <button
-                key={link.id}
-                onClick={() => handleMobileNavigate(link.id)}
-                className={`border border-white/20 bg-transparent backdrop-blur-sm px-6 py-4 md:px-10 md:py-5 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] transition-all duration-500 transform ${
-                  isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
-                } ${
-                  currentPage === link.id 
-                    ? 'bg-white text-[#1A1A1A] border-white' 
-                    : 'text-white hover:bg-white hover:text-[#1A1A1A] shadow-lg hover:shadow-2xl hover:-translate-y-1'
-                }`}
-                style={{ transitionDelay: `${idx * 50}ms` }}
-              >
-                {link.name}
-              </button>
-            ))}
-          </div>
-
-          <div className={`w-12 h-[1px] bg-white/20 transition-all duration-1000 delay-500 ${isMenuOpen ? 'scale-x-100' : 'scale-x-0'}`}></div>
-
-          {/* Secondary Actions */}
-          <div className={`flex flex-col w-full gap-4 max-w-sm transition-all duration-700 delay-[600ms] ${isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
-            <div className="flex justify-center">
-              <button
-                onClick={() => handleMobileNavigate('artisan-login')}
-                className="w-full py-4 bg-white/5 border border-white/10 text-white text-[9px] tracking-[0.2em] uppercase font-bold hover:bg-white/10"
-              >
-                Artisan Login
-              </button>
-            </div>
-          </div>
-
-          <div className={`pt-12 transition-all duration-700 delay-[800ms] ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}>
-            <p className="text-[9px] uppercase tracking-[0.6em] text-white/40 font-medium text-center">
-              © {new Date().getFullYear()} Kala Prayag Heritage Collective
-            </p>
-          </div>
+        <div className="flex flex-col items-center justify-center h-full pt-20 pb-10 space-y-8">
+          {desktopLinks.map((link) => (
+            <button
+              key={link.name}
+              onClick={() => handleMobileNavigate(link.id)}
+              className="text-[14px] font-medium tracking-[0.2em] uppercase text-[#1A1A1A] hover:text-[#8B735B] transition-colors"
+            >
+              {link.name}
+            </button>
+          ))}
         </div>
       </div>
     </>
