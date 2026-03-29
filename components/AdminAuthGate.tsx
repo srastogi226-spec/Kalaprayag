@@ -185,23 +185,25 @@ const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ children }) => {
   // Login screen
   return (
     <div className="min-h-screen pt-32 pb-24 px-6 flex items-center justify-center bg-[#FAF9F6]">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-md">
 
+        {/* Header — matches Artisan Login */}
         <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-[#2C2C2C] rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <span className="text-[10px] uppercase tracking-[0.4em] text-[#8B735B] font-bold">Restricted Access</span>
-          <h1 className="text-3xl serif mt-3 mb-2">Admin Console</h1>
-          <p className="text-[#999] text-sm font-light">Sign in with Google or password.</p>
+          <span className="text-[10px] uppercase tracking-[0.4em] text-[#8B735B] font-bold">
+            Admin Portal
+          </span>
+          <h1 className="text-4xl serif mt-3 mb-3">
+            Welcome Back
+          </h1>
+          <p className="text-[#999] text-sm font-light">
+            Sign in to access the admin console.
+          </p>
         </div>
 
-        <div className="bg-white border border-[#E5E5E5] p-8 shadow-sm space-y-6">
+        <div className="bg-white border border-[#E5E5E5] p-8 shadow-sm space-y-5">
 
           {error && (
-            <div className="bg-red-50 border border-red-100 text-red-700 text-xs p-3 leading-relaxed rounded-sm">
+            <div className="bg-red-50 border border-red-100 text-red-700 text-xs p-3 leading-relaxed text-center mb-2 rounded-sm">
               {error}
             </div>
           )}
@@ -222,7 +224,7 @@ const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ children }) => {
             </button>
           </div>
 
-          {/* Google tab */}
+          {/* Google tab — styled like Artisan Login button */}
           {authMethod === 'google' && (
             <div className="flex flex-col items-center gap-4">
               <p className="text-xs text-[#999] text-center">
