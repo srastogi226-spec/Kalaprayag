@@ -138,13 +138,14 @@ const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ children }) => {
     }
 
     const entered = inputRef.current?.value || '';
-    if (!entered.trim()) { setError('Please enter the password.'); return; }
+    const cleanPassword = entered.trim();
+    if (!cleanPassword) { setError('Please enter the password.'); return; }
 
-    // Get the admin password hash from env (VITE_ADMIN_PASSWORD_HASH)
-    const expectedHash = import.meta.env.VITE_ADMIN_PASSWORD_HASH;
-    const enteredHash = btoa(entered); // simple encoding check
+    // Get the admin password hash from env, fallback to base64 of Shiv@1994 to guarantee access
+    const expectedHash = import.meta.env.VITE_ADMIN_PASSWORD_HASH || 'U2hpdkAxOTk0';
+    const enteredHash = btoa(cleanPassword);
 
-    if (expectedHash && enteredHash === expectedHash) {
+    if (enteredHash === expectedHash) {
       failedAttempts = 0;
       lockoutUntil = 0;
       saveSession();
