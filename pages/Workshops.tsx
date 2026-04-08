@@ -115,21 +115,26 @@ const Workshops: React.FC<WorkshopsProps> = ({ workshops, artisans, classBooking
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+      <div className="editorial-grid">
         {approvedWorkshops.map((w) => (
           <div
             key={w.id}
-            className="group cursor-pointer bg-white border border-[#F0F0F0] overflow-hidden hover:shadow-xl transition-all duration-500"
+            className="col-span-12 md:col-span-6 lg:col-span-4 group cursor-pointer bg-white border border-[#F0F0F0] overflow-hidden hover:shadow-xl transition-all duration-500 rounded-sm"
             onClick={() => onViewWorkshop(w.id)}
           >
             <div className="relative h-64 overflow-hidden">
-              <img src={w.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={w.title} />
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 text-[10px] uppercase tracking-widest font-semibold shadow-sm">
+              <img src={w.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={w.title} />
+              <div className="absolute top-4 right-4 glass px-3 py-1 text-[10px] uppercase tracking-widest font-semibold shadow-sm text-[#2C2C2C] rounded-sm">
                 {w.mode}
+              </div>
+              
+              {/* Glass overlay on hover */}
+              <div className="absolute inset-x-6 bottom-6 glass opacity-0 group-hover:opacity-100 transition-all duration-500 p-3 translate-y-3 group-hover:translate-y-0 text-center text-[10px] uppercase tracking-widest font-bold text-[#2C2C2C] rounded-sm shadow-md">
+                {t('View Workshop')}
               </div>
             </div>
             <div className="p-8">
-              <span className="text-[10px] uppercase tracking-widest text-[#8B735B] mb-2 block">{t(w.category)}</span>
+              <span className="text-[10px] uppercase tracking-[0.2em] text-[#8B735B] mb-2 block font-semibold">{t(w.category)}</span>
               <h3 className="text-2xl serif mb-4 group-hover:text-[#8B735B] transition-colors">{t(w.title)}</h3>
               <p className="text-sm text-[#666] line-clamp-2 mb-6 font-light">{t(w.description)}</p>
 
