@@ -134,19 +134,19 @@ const Shop: React.FC<ShopProps> = ({ products, onViewProduct, onAddToCart, onTog
       <div>
         {/* Product Grid */}
         <main className="flex-grow">
-          <div className="editorial-grid gap-y-12">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-10">
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
-                className="col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3 group cursor-pointer relative"
+                className="group cursor-pointer"
                 onClick={() => onViewProduct(product.id)}
               >
-                <div className="relative overflow-hidden aspect-[3/4] bg-[#F5F5F5] rounded-sm shadow-sm transition-all duration-500 group-hover:shadow-xl">
+                <div className="relative overflow-hidden aspect-[3/4] bg-[#F5F5F5] mb-3 rounded-sm shadow-sm transition-shadow group-hover:shadow-md">
                   {product.images[1] ? (
                     <>
                       <img
                         src={showFirstImage ? product.images[0] : product.images[1]}
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                         alt={product.name}
                       />
                       <img
@@ -158,45 +158,45 @@ const Shop: React.FC<ShopProps> = ({ products, onViewProduct, onAddToCart, onTog
                   ) : (
                     <img
                       src={product.images[0] || 'https://via.placeholder.com/800'}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                       alt={product.name}
                     />
                   )}
-                  
-                  {/* Glass Overlay Actions */}
-                  <div className="absolute top-3 right-3 z-10 glass p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 shadow-sm">
+                  {/* Wishlist Button — Always visible for visibility */}
+                  <div className="absolute top-3 right-3 z-10">
                     <WishlistButton productId={product.id} variant="minimal" onNavigate={onNavigate} />
                   </div>
-
-                  <div className="absolute inset-x-2 bottom-2 z-10 glass p-4 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0 rounded-sm flex items-center justify-between">
-                    <p className="text-[#2C2C2C] font-bold text-sm">₹ {product.price.toLocaleString()}</p>
-                    <button 
-                      className="text-[10px] uppercase tracking-widest text-[#2C2C2C] border-b border-[#2C2C2C] font-bold hover:text-[#8B735B] transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (onAddToCart) {
-                          onAddToCart({
-                            productId: product.id,
-                            name: product.name,
-                            price: product.price,
-                            image: product.images[0],
-                            quantity: 1,
-                            size: 'Standard',
-                            finish: 'Original',
-                            notes: ''
-                          });
-                        }
-                      }}
-                    >
-                      {t('Add to Cart')}
-                    </button>
-                  </div>
                 </div>
-                <div className="mt-4">
+                <div>
                   <h3 className="text-sm serif mb-0.5 group-hover:text-[#8B735B] transition-colors line-clamp-1">{t(product.name)}</h3>
-                  <div className="flex justify-between items-center mt-1">
-                    <p className="text-[9px] uppercase tracking-widest text-[#999]">{t(product.category)}</p>
-                    <p className="text-[#999] line-through text-xs group-hover:opacity-0 transition-opacity">₹ {Math.round(product.price * 1.10).toLocaleString()}</p>
+                  <p className="text-[9px] uppercase tracking-widest text-[#999] mb-1.5">{t(product.category)}</p>
+                  <div className="price-container">
+                    <div className="price-stack">
+                      <div className="price-item flex items-center gap-2">
+                        <p className="text-[#999] line-through text-xs">₹ {Math.round(product.price * 1.10).toLocaleString()}</p>
+                        <p className="text-[#2C2C2C] font-bold text-sm">₹ {product.price.toLocaleString()}</p>
+                      </div>
+                      <div
+                        className="price-item cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onAddToCart) {
+                            onAddToCart({
+                              productId: product.id,
+                              name: product.name,
+                              price: product.price,
+                              image: product.images[0],
+                              quantity: 1,
+                              size: 'Standard',
+                              finish: 'Original',
+                              notes: ''
+                            });
+                          }
+                        }}
+                      >
+                        <p className="text-[10px] uppercase tracking-widest text-[#8B735B] font-bold">{t('Add to Cart')}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

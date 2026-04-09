@@ -82,37 +82,38 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, cart, on
     <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto animate-in fade-in duration-500">
 
       {/* Toast */}
-      <div className={`fixed top-24 right-8 z-[200] glass px-8 py-4 shadow-2xl flex items-center gap-3 transition-all duration-500 rounded-sm \${toast ? 'translate-x-0 opacity-100' : 'translate-x-32 opacity-0'}`}>
+      <div className={`fixed top-24 right-8 z-[200] bg-[#2C2C2C] text-white px-8 py-4 shadow-2xl flex items-center gap-3 transition-all duration-500 ${toast ? 'translate-x-0 opacity-100' : 'translate-x-32 opacity-0'}`}>
         <svg className="w-5 h-5 text-[#8B735B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-        <span className="text-xs uppercase tracking-widest font-bold text-[#2C2C2C]">Added to Cart</span>
-        <button onClick={onToggleCart} className="ml-4 text-[#8B735B] text-[10px] uppercase tracking-widest border-b border-[#8B735B] font-bold">View Cart</button>
+        <span className="text-xs uppercase tracking-widest font-medium">Added to Cart</span>
+        <button onClick={onToggleCart} className="ml-4 text-[#8B735B] text-xs underline underline-offset-2">View Cart</button>
       </div>
 
       {/* Cart Icon */}
       {cart.length > 0 && (
-        <button onClick={onToggleCart} className="fixed top-24 left-8 z-[150] glass px-5 py-3 flex items-center gap-3 hover:shadow-xl transition-all animate-in slide-in-from-left duration-500 rounded-sm shadow-lg text-[#2C2C2C]">
+        <button onClick={onToggleCart} className="fixed top-24 left-8 z-[150] bg-white border border-[#E5E5E5] shadow-lg px-5 py-3 flex items-center gap-3 hover:shadow-xl transition-all animate-in slide-in-from-left duration-500">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-          <span className="text-[10px] uppercase tracking-widest font-bold">{cart.reduce((s, i) => s + i.quantity, 0)} items</span>
-          <span className="text-[10px] text-[#8B735B] tracking-widest font-bold">₹ {cartTotal.toLocaleString()}</span>
+          <span className="text-xs uppercase tracking-widest font-bold">{cart.reduce((s, i) => s + i.quantity, 0)} items</span>
+          <span className="text-xs text-[#8B735B] font-bold">₹ {cartTotal.toLocaleString()}</span>
         </button>
       )}
+
 
       <button onClick={onBack} className="flex items-center text-xs uppercase tracking-widest text-[#999] hover:text-[#2C2C2C] mb-12 transition-colors">
         <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         Back to Collection
       </button>
 
-      <div className="editorial-grid">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
         {/* Images */}
-        <div className="col-span-12 lg:col-span-6 space-y-6">
-          <div className="aspect-square overflow-hidden bg-[#F5F5F5] rounded-sm">
+        <div className="space-y-6">
+          <div className="aspect-square overflow-hidden bg-[#F5F5F5]">
             <img src={product.images[activeImageIndex] || 'https://images.unsplash.com/photo-1588362951121-3ee319b018b2?auto=format&fit=crop&q=80&w=800'} className="w-full h-full object-cover" alt={product.name} />
           </div>
           {product.images.length > 1 && (
             <div className="grid grid-cols-4 gap-4">
               {product.images.map((img, idx) => (
-                <div key={idx} onClick={() => setActiveImageIndex(idx)} className={`aspect-square overflow-hidden cursor-pointer border-2 transition-all rounded-sm \${activeImageIndex === idx ? 'border-[#2C2C2C]' : 'border-transparent opacity-60 hover:opacity-100'}`}>
-                  <img src={img} className="w-full h-full object-cover" alt={`view \${idx + 1}`} />
+                <div key={idx} onClick={() => setActiveImageIndex(idx)} className={`aspect-square overflow-hidden cursor-pointer border-2 transition-all ${activeImageIndex === idx ? 'border-[#2C2C2C]' : 'border-transparent opacity-60 hover:opacity-100'}`}>
+                  <img src={img} className="w-full h-full object-cover" alt={`view ${idx + 1}`} />
                 </div>
               ))}
             </div>
@@ -120,7 +121,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, cart, on
         </div>
 
         {/* Info */}
-        <div className="col-span-12 lg:col-span-6">
+        <div>
           <span className="text-xs uppercase tracking-[0.2em] text-[#8B735B] mb-2 block">{product.category}</span>
           <div className="flex justify-between items-start mb-6">
             <h1 className="text-5xl serif">{product.name}</h1>
