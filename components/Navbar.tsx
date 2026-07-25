@@ -38,7 +38,7 @@ const Navbar: React.FC<NavbarProps> = ({
   // Desktop shows only core links — Custom Studio & Contact are in the menu drawer
   const desktopLinks = [
     { name: 'Shop', id: 'shop' },
-    { name: 'Workshops', id: 'workshops' },
+    { name: 'Workshops', id: 'workshops', badge: 'Soon' },
     { name: 'Journal', id: 'journal' },
     { name: 'Makers', id: 'artisan-profiles' },
     { name: 'About', id: 'about' },
@@ -48,7 +48,7 @@ const Navbar: React.FC<NavbarProps> = ({
   const navLinks = [
     { name: 'Home', id: 'home' },
     { name: 'Shop', id: 'shop' },
-    { name: 'Workshops', id: 'workshops' },
+    { name: 'Workshops', id: 'workshops', badge: 'Soon' },
     { name: 'Journal', id: 'journal' },
     { name: 'Custom Studio', id: 'studio' },
     { name: 'Makers', id: 'artisan-profiles' },
@@ -105,6 +105,11 @@ const Navbar: React.FC<NavbarProps> = ({
                   }`}
               >
                 {link.name}
+                {link.badge && (
+                  <span className="ml-1 px-1.5 py-0.5 text-[8px] bg-[#8B735B] text-white rounded-full tracking-normal font-semibold">
+                    {link.badge}
+                  </span>
+                )}
                 <span className={`absolute -bottom-1 left-0 h-[1px] bg-[#8B735B] transition-all duration-300 ${currentPage === link.id ? 'w-full' : 'w-0 group-hover:w-full'
                   }`}></span>
               </button>
@@ -194,6 +199,11 @@ const Navbar: React.FC<NavbarProps> = ({
                 style={{ transitionDelay: `${idx * 50}ms` }}
               >
                 {link.name}
+                {link.badge && (
+                  <span className="ml-2 px-2 py-0.5 text-[8px] bg-[#8B735B] text-white rounded-full tracking-normal font-semibold">
+                    {link.badge}
+                  </span>
+                )}
               </button>
             ))}
           </div>

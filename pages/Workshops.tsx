@@ -3,160 +3,201 @@ import { Workshop, Artisan, ClassBooking } from '../types';
 import { useTranslate } from '../hooks/useTranslate';
 
 interface WorkshopsProps {
-  workshops: Workshop[];
-  artisans: Artisan[];
-  classBookings: ClassBooking[];
-  onViewWorkshop: (id: string) => void;
+  workshops?: Workshop[];
+  artisans?: Artisan[];
+  classBookings?: ClassBooking[];
+  onViewWorkshop?: (id: string) => void;
   onNavigate: (page: string) => void;
 }
 
-const Workshops: React.FC<WorkshopsProps> = ({ workshops, artisans, classBookings, onViewWorkshop, onNavigate }) => {
-  const [filterMode, setFilterMode] = useState<'all' | 'online' | 'offline'>('all');
+const Workshops: React.FC<WorkshopsProps> = ({ onNavigate }) => {
   const { t } = useTranslate();
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
-  const approvedWorkshops = workshops.filter(w =>
-    w.status === 'approved' &&
-    (filterMode === 'all' || w.mode === filterMode)
-  );
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.trim()) {
+      setSubmitted(true);
+    }
+  };
+
+  const upcomingMasterclasses = [
+    {
+      title: 'Blue Pottery & Floral Glazes',
+      craft: 'Jaipur Ceramic Arts',
+      master: 'Master Pandit Ram Gopal',
+      image: '/workshops-banner.png',
+      location: 'Jaipur Studio & Live Stream',
+      season: 'Coming Winter 2026',
+    },
+    {
+      title: 'Lost-Wax Brass & Bronze Casting',
+      craft: 'Dhokra Metal Craft',
+      master: 'Artisan Devendra Jhankar',
+      image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&q=80&w=1000',
+      location: 'Bastar Craft Village & Online',
+      season: 'Coming Early 2027',
+    },
+    {
+      title: 'Heritage Hand-Block Printing',
+      craft: 'Natural Dyes & Woodblocks',
+      master: 'Master Artisan Sunita Craft',
+      image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=1000',
+      location: 'Bagru Workshop & Virtual Masterclass',
+      season: 'Coming Spring 2027',
+    },
+  ];
 
   return (
-    <>
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '280px',
-          marginTop: '64px', /* clears fixed navbar */
-          overflow: 'hidden',
-          backgroundImage: 'url(/workshops-banner.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        {/* Dark uniform overlay for readability */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.6)',
-          }}
-        />
+    <div className="min-h-screen bg-[#FAF9F6] text-[#1A1A1A] pt-24 pb-24">
+      {/* Hero Section */}
+      <div className="relative w-full max-w-7xl mx-auto px-6 mb-16">
+        <div className="relative rounded-2xl overflow-hidden bg-[#1A1A1A] text-white p-10 md:p-20 shadow-2xl border border-white/10">
+          <div
+            className="absolute inset-0 opacity-30 mix-blend-overlay bg-cover bg-center"
+            style={{ backgroundImage: 'url(/workshops-banner.png)' }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1A1A1A] via-[#1A1A1A]/90 to-transparent" />
 
-        {/* Content row */}
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 10,
-            height: '100%',
-            maxWidth: '80rem',
-            margin: '0 auto',
-            padding: '0 2rem',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-          }}
-        >
-          <span className="text-[10px] uppercase tracking-[0.3em] text-[#C4A882] mb-4 block font-semibold drop-shadow-md">{t('Academy')}</span>
-          <h1 className="text-5xl md:text-6xl serif mb-4 text-white tracking-widest leading-tight drop-shadow-md">
-            {t('Artist Workshops')}
-          </h1>
-          <p className="text-white/80 font-light max-w-xl mx-auto text-sm md:text-base drop-shadow-sm leading-relaxed">
-            {t('Learn heritage crafts directly from the masters. Join our physical studio sessions or online masterclasses.')}
-          </p>
+          <div className="relative z-10 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8B735B]/20 border border-[#8B735B]/40 text-[#C4A97D] text-[10px] uppercase tracking-[0.25em] font-semibold mb-6">
+              <span className="w-2 h-2 rounded-full bg-[#C4A97D] animate-pulse" />
+              {t('Academy & Masterclasses · Coming Soon')}
+            </div>
+
+            <h1 className="text-4xl md:text-6xl serif mb-6 tracking-wide leading-tight text-white">
+              {t('Heritage Workshops')}
+              <span className="block text-2xl md:text-3xl font-light italic text-[#C4A97D] mt-2">
+                {t('Learn directly from India’s Master Artisans')}
+              </span>
+            </h1>
+
+            <p className="text-white/70 text-sm md:text-base font-light leading-relaxed mb-10 max-w-xl">
+              {t(
+                'We are curating intimate physical studio sessions and interactive digital masterclasses. Connect with legendary craftspeople and preserve centuries-old art forms.'
+              )}
+            </p>
+
+            {/* Newsletter / Waitlist Signup */}
+            <div className="bg-white/5 border border-white/15 p-6 rounded-xl backdrop-blur-md max-w-lg">
+              <p className="text-xs uppercase tracking-widest text-[#C4A97D] font-semibold mb-3">
+                {t('Be First in Line')}
+              </p>
+              {submitted ? (
+                <div className="p-4 bg-[#8B735B]/20 border border-[#8B735B]/50 rounded-lg text-center">
+                  <p className="text-sm font-medium text-white">{t('You are on the priority waitlist!')}</p>
+                  <p className="text-xs text-white/60 mt-1">{t('We will notify you as soon as bookings open.')}</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t('Enter your email for early access')}
+                    className="flex-1 bg-white/10 border border-white/20 px-4 py-3 text-xs text-white placeholder-white/40 focus:outline-none focus:border-[#C4A97D] rounded-lg transition-colors"
+                  />
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-[#8B735B] hover:bg-[#A3896F] text-white text-[10px] uppercase tracking-widest font-bold rounded-lg transition-colors whitespace-nowrap"
+                  >
+                    {t('Notify Me')}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="pt-12 pb-24 min-h-screen px-6 max-w-7xl mx-auto animate-in fade-in duration-700">
-
-      <div className="flex justify-center gap-4 mb-12">
-        {['all', 'online', 'offline'].map((mode) => (
-          <button
-            key={mode}
-            onClick={() => setFilterMode(mode as any)}
-            className={`px-8 py-2 text-[10px] uppercase tracking-widest border transition-all ${filterMode === mode ? 'bg-[#2C2C2C] text-white border-[#2C2C2C]' : 'border-[#D1D1D1] text-[#666] hover:border-[#2C2C2C]'}`}
-          >
-            {t(mode)}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Prominent Group Workshops Banner — navigates to dedicated page ── */}
-      <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-        <button
-          onClick={() => onNavigate('group-workshops')}
-          className="group block w-full text-left relative overflow-hidden bg-gradient-to-r from-[#2C2C2C] via-[#3D3427] to-[#4A3C2A] rounded-xl p-6 md:p-8 hover:shadow-xl transition-all duration-500"
-        >
-          {/* Decorative pattern */}
-          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
-
-          <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-start gap-4">
-              {/* Icon */}
-              <div className="flex-shrink-0 w-12 h-12 bg-[#8B735B]/20 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-[#C4A97D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                </svg>
-              </div>
-              <div>
-                <span className="text-[9px] uppercase tracking-[0.3em] text-[#C4A97D] font-semibold mb-0.5 block">{t('For Schools · Corporates · Groups')}</span>
-                <h3 className="text-lg md:text-xl serif text-white mb-1">{t('Group & Institutional Workshops')}</h3>
-                <p className="text-white/60 text-xs font-light max-w-md">{t('Bring heritage craft experiences to your team or classroom. Custom-built for groups of any size.')}</p>
-              </div>
-            </div>
-            <div className="flex-shrink-0 flex items-center gap-2.5 bg-white/10 border border-white/10 px-5 py-2.5 rounded-lg group-hover:bg-[#8B735B] group-hover:border-[#8B735B] transition-all duration-300">
-              <span className="text-white text-[10px] uppercase tracking-[0.2em] font-bold whitespace-nowrap">{t('Request a Workshop')}</span>
-              <svg className="w-3.5 h-3.5 text-white transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </div>
+      {/* Upcoming Preview Grid */}
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 pb-6 border-b border-[#E5E0D8]">
+          <div>
+            <span className="text-[10px] uppercase tracking-[0.3em] text-[#8B735B] font-semibold block mb-2">
+              {t('Sneak Peek')}
+            </span>
+            <h2 className="text-2xl md:text-3xl serif tracking-wider text-[#1A1A1A]">
+              {t('Upcoming Masterclass Series')}
+            </h2>
           </div>
-        </button>
-      </div>
+          <p className="text-xs text-[#777] font-light max-w-sm mt-2 md:mt-0">
+            {t('Craft curriculum and live booking schedules are currently being crafted in collaboration with our master artisans.')}
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-        {approvedWorkshops.map((w) => (
-          <div
-            key={w.id}
-            className="group cursor-pointer bg-white border border-[#F0F0F0] overflow-hidden hover:shadow-xl transition-all duration-500"
-            onClick={() => onViewWorkshop(w.id)}
-          >
-            <div className="relative h-64 overflow-hidden">
-              <img src={w.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={w.title} />
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 text-[10px] uppercase tracking-widest font-semibold shadow-sm">
-                {w.mode}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {upcomingMasterclasses.map((item, index) => (
+            <div
+              key={index}
+              className="group bg-white rounded-xl overflow-hidden border border-[#EAE5DD] shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col"
+            >
+              <div className="relative h-64 overflow-hidden">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 filter grayscale group-hover:grayscale-0"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A]/80 via-transparent to-transparent" />
+                <div className="absolute top-4 right-4 bg-[#1A1A1A]/90 backdrop-blur text-[#C4A97D] text-[9px] uppercase tracking-widest px-3 py-1 font-semibold rounded-full border border-[#C4A97D]/30">
+                  {item.season}
+                </div>
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <span className="text-[9px] uppercase tracking-widest text-[#C4A97D] font-medium block">
+                    {item.craft}
+                  </span>
+                  <h3 className="text-lg serif font-medium drop-shadow">{item.title}</h3>
+                </div>
               </div>
-            </div>
-            <div className="p-8">
-              <span className="text-[10px] uppercase tracking-widest text-[#8B735B] mb-2 block">{t(w.category)}</span>
-              <h3 className="text-2xl serif mb-4 group-hover:text-[#8B735B] transition-colors">{t(w.title)}</h3>
-              <p className="text-sm text-[#666] line-clamp-2 mb-6 font-light">{t(w.description)}</p>
 
-              <div className="pt-6 border-t border-[#F0F0F0]">
-                <p className="text-[10px] uppercase tracking-widest text-[#999] mb-1">{t('Next Session')}</p>
-                <div className="flex justify-between items-end">
-                  <p className="text-sm font-medium">{new Date(w.date).toLocaleDateString()}</p>
-                  <div className="text-right">
-                    <p className="text-[8px] uppercase tracking-widest text-[#999] mb-0.5">{t('Availability')}</p>
-                    <p className="text-xs font-semibold text-[#8B735B]">
-                      {w.maxStudents - classBookings.filter(b => b.workshopId === w.id).length} {t('Seats Left')}
-                    </p>
-                  </div>
+              <div className="p-6 flex-1 flex flex-col justify-between bg-white">
+                <div className="space-y-2 mb-6">
+                  <p className="text-xs text-[#666] flex items-center gap-2 font-light">
+                    <svg className="w-4 h-4 text-[#8B735B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    {item.master}
+                  </p>
+                  <p className="text-xs text-[#666] flex items-center gap-2 font-light">
+                    <svg className="w-4 h-4 text-[#8B735B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    </svg>
+                    {item.location}
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-[#F0ECE1] flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-widest text-[#999] font-medium">
+                    {t('Status')}
+                  </span>
+                  <span className="text-xs font-semibold text-[#8B735B]">
+                    {t('Coming Soon')}
+                  </span>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {approvedWorkshops.length === 0 && (
-        <div className="py-32 text-center text-[#999]">
-          <p className="serif text-2xl italic">{t('No workshops available in this category yet.')}</p>
+          ))}
         </div>
-      )}
+
+        {/* Action redirect to shop */}
+        <div className="mt-16 text-center bg-[#EFECE6] p-10 rounded-2xl border border-[#DFD9CE]">
+          <h3 className="text-xl md:text-2xl serif mb-3 text-[#1A1A1A]">
+            {t('Explore Our Handcrafted Collections')}
+          </h3>
+          <p className="text-xs md:text-sm text-[#666] max-w-md mx-auto mb-6 font-light">
+            {t('While we prepare our workshop masterclasses, discover master-made pieces available directly in our studio collection.')}
+          </p>
+          <button
+            onClick={() => onNavigate('shop')}
+            className="px-8 py-3 bg-[#1A1A1A] hover:bg-[#8B735B] text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-lg transition-colors shadow-md"
+          >
+            {t('Visit Kala Prayag Shop')}
+          </button>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 
